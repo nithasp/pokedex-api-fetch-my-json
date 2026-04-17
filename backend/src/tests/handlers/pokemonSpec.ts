@@ -36,9 +36,9 @@ beforeEach(async () => {
   await Pokemon.insertMany(seed);
 });
 
-describe("GET /health", () => {
+describe("GET /", () => {
   it("returns ok", async () => {
-    const res = await request(app).get("/health");
+    const res = await request(app).get("/");
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: "ok", service: "pokedex-backend" });
@@ -52,7 +52,7 @@ describe("GET /api/pokemon", () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveLength(4);
-    expect(res.body.meta).toMatchObject({
+    expect(res.body.pagination).toEqual({
       page: 1,
       limit: 25,
       total: 4,
@@ -73,7 +73,7 @@ describe("GET /api/pokemon", () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(2);
     expect(res.body.data[0]._id).toBe(7);
-    expect(res.body.meta).toMatchObject({
+    expect(res.body.pagination).toEqual({
       page: 2,
       limit: 2,
       total: 4,

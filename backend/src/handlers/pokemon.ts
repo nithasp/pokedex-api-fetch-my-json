@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { Pokemon } from "../models/pokemon";
 import { asyncHandler } from "../utils/asyncHandler";
-import { HttpError, ok } from "../utils/response";
+import { HttpError, buildPagination, ok } from "../utils/response";
 import { validate, validated } from "../utils/validate";
 import type {
   ListPokemonQuery,
@@ -45,12 +45,7 @@ pokemonRouter.get(
       Pokemon.countDocuments(filter),
     ]);
 
-    return ok(res, items, {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    });
+    return ok(res, items, buildPagination(page, limit, total));
   })
 );
 

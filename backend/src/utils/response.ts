@@ -1,9 +1,16 @@
 import { Response } from "express";
 
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface ApiSuccess<T> {
   success: true;
   data: T;
-  meta?: Record<string, unknown>;
+  pagination?: Pagination;
 }
 
 export interface ApiError {
@@ -18,11 +25,24 @@ export interface ApiError {
 export function ok<T>(
   res: Response,
   data: T,
-  meta?: Record<string, unknown>
+  pagination?: Pagination
 ): Response {
   const body: ApiSuccess<T> = { success: true, data };
-  if (meta) body.meta = meta;
+  if (pagination) body.pagination = pagination;
   return res.status(200).json(body);
+}
+
+export function buildPagination(
+  page: number,
+  limit: number,
+  total: number
+): Pagination {
+  return {
+    page,
+    limit,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / limit)),
+  };
 }
 
 export function created<T>(res: Response, data: T): Response {
