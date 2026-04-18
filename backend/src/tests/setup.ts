@@ -6,16 +6,13 @@ let mongo: MongoMemoryServer;
 
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  await mongoose.connect(uri);
+  await mongoose.connect(mongo.getUri());
 });
 
+// Wipe all collections between tests for isolation.
 afterEach(async () => {
-  // Wipe all collections between tests for isolation.
-  const collections = mongoose.connection.collections;
-  for (const key of Object.keys(collections)) {
-    await collections[key].deleteMany({});
-  }
+  const collections = Object.values(mongoose.connection.collections);
+  await Promise.all(collections.map((c) => c.deleteMany({})));
 });
 
 afterAll(async () => {

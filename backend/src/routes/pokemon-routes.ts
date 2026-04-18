@@ -1,30 +1,33 @@
 import { Router } from "express";
 import { z } from "zod";
-import { getPokemon, getPokemons } from "../controllers/pokemonController";
+import { getPokemon, getPokemons } from "../controllers/pokemon-controller";
 import { validate } from "../middleware/validate";
-import { asyncHandler } from "../utils/asyncHandler";
+import { asyncHandler } from "../utils/async-handler";
 
-export const pokemonRouter = Router();
-
-const listQuerySchema = z.object({
+export const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(200).default(25),
   type: z.string().trim().min(1).optional(),
   search: z.string().trim().min(1).optional(),
 });
 
-const idParamSchema = z.object({
+export const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
+
+export type ListPokemonQuery = z.infer<typeof listQuerySchema>;
+export type PokemonIdParams = z.infer<typeof idParamSchema>;
+
+export const pokemonRouter = Router();
 
 pokemonRouter.get(
   "/",
   validate(listQuerySchema, "query"),
-  asyncHandler(getPokemons)
+  asyncHandler(getPokemons),
 );
 
 pokemonRouter.get(
   "/:id",
   validate(idParamSchema, "params"),
-  asyncHandler(getPokemon)
+  asyncHandler(getPokemon),
 );

@@ -1,76 +1,27 @@
 import { Response } from "express";
+import type { ApiError, ApiSuccess, Pagination } from "../types/api-response.type";
 
-export interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
+export const ok = <T>(res: Response, data: T, pagination?: Pagination): Response =>
+  res.status(200).json({ success: true, data, ...(pagination && { pagination }) } as ApiSuccess<T>);
 
-export interface ApiSuccess<T> {
-  success: true;
-  data: T;
-  pagination?: Pagination;
-}
+export const buildPagination = (page: number, limit: number, total: number): Pagination => ({
+  page,
+  limit,
+  total,
+  totalPages: Math.max(1, Math.ceil(total / limit)),
+});
 
-export interface ApiError {
-  success: false;
-  error: {
-    message: string;
-    code?: string;
-    details?: unknown;
-  };
-}
-
-export function ok<T>(
-  res: Response,
-  data: T,
-  pagination?: Pagination
-): Response {
-  const body: ApiSuccess<T> = { success: true, data };
-  if (pagination) body.pagination = pagination;
-  return res.status(200).json(body);
-}
-
-export function buildPagination(
-  page: number,
-  limit: number,
-  total: number
-): Pagination {
-  return {
-    page,
-    limit,
-    total,
-    totalPages: Math.max(1, Math.ceil(total / limit)),
-  };
-}
-
-export function created<T>(res: Response, data: T): Response {
-  const body: ApiSuccess<T> = { success: true, data };
-  return res.status(201).json(body);
-}
-
-export function noContent(res: Response): Response {
-  return res.status(204).send();
-}
-
-export function fail(
+export const fail = (
   res: Response,
   status: number,
   message: string,
   code?: string,
   details?: unknown
-): Response {
-  const body: ApiError = {
+): Response =>
+  res.status(status).json({
     success: false,
-    error: {
-      message,
-      ...(code !== undefined && { code }),
-      ...(details !== undefined && { details }),
-    },
-  };
-  return res.status(status).json(body);
-}
+    error: { message, ...(code !== undefined && { code }), ...(details !== undefined && { details }) },
+  } as ApiError);
 
 export class HttpError extends Error {
   constructor(

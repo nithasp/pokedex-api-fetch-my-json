@@ -5,15 +5,9 @@ import { config } from "./config/env";
 async function start(): Promise<void> {
   await connectDB();
 
-  const app = buildApp({
-    corsOrigin: config.corsOrigin,
-    enableLogging: true,
-  });
-
+  const app = buildApp({ corsOrigin: config.corsOrigin, enableLogging: true });
   const server = app.listen(config.port, () => {
-    console.log(
-      `[server] Listening on http://localhost:${config.port} (${config.nodeEnv})`
-    );
+    console.log(`[server] Listening on http://localhost:${config.port} (${config.nodeEnv})`);
   });
 
   const shutdown = async (signal: string): Promise<void> => {

@@ -1,18 +1,11 @@
 import { Request, Response } from "express";
-import { validated } from "../middleware/validate";
 import { Pokemon } from "../models/pokemon";
-import type {
-  ListPokemonQuery,
-  PokemonIdParams,
-} from "../types/pokemon.types";
+import type { ListPokemonQuery, PokemonIdParams } from "../routes/pokemon-routes";
 import { HttpError, buildPagination, ok } from "../utils/response";
 
 // GET /api/pokemon — paginated list, filter by type and/or name search
 export const getPokemons = async (req: Request, res: Response) => {
-  const { page, limit, type, search } = validated<ListPokemonQuery>(
-    req as unknown as Record<string, unknown>,
-    "query"
-  );
+  const { page, limit, type, search } = req.valid.query as ListPokemonQuery;
 
   const filter: Record<string, unknown> = {};
   if (type) filter.types = type;
@@ -32,10 +25,7 @@ export const getPokemons = async (req: Request, res: Response) => {
 
 // GET /api/pokemon/:id — single pokemon by national dex number
 export const getPokemon = async (req: Request, res: Response) => {
-  const { id } = validated<PokemonIdParams>(
-    req as unknown as Record<string, unknown>,
-    "params"
-  );
+  const { id } = req.valid.params as PokemonIdParams;
 
   const pokemon = await Pokemon.findById(id).lean();
   if (!pokemon) {
