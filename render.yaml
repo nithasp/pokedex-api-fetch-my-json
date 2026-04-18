@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: pokedex-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    branch: feature/add-fullstack-structure
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

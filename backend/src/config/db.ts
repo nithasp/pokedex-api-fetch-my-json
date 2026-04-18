@@ -4,7 +4,10 @@ import { config } from "./env";
 
 // Windows IPv6 link-local DNS (fe80::1) can cause ECONNREFUSED on SRV lookups
 // when using mongodb+srv:// URIs. Force public resolvers to avoid it.
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+// Only needed on Windows; Linux containers (e.g. Render) resolve fine natively.
+if (process.platform === "win32") {
+  dns.setServers(["1.1.1.1", "8.8.8.8"]);
+}
 
 export async function connectDB(): Promise<void> {
   mongoose.set("strictQuery", true);
