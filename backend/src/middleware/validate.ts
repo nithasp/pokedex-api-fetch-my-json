@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { ZodType } from "zod";
-import { fail } from "./response";
+import { fail } from "../utils/response";
 
 type ValidatedSource = "body" | "query" | "params";
 

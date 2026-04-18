@@ -2,8 +2,8 @@ import cors from "cors";
 import express, { Express, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import { pokemonRouter } from "./handlers/pokemon";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { pokemonRouter } from "./routes/pokemonRoutes";
 
 export interface BuildAppOptions {
   corsOrigin?: string;

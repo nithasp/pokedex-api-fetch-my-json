@@ -1,9 +1,9 @@
 import { buildApp } from "./app";
-import { config } from "./config";
-import { connectDatabase, disconnectDatabase } from "./database";
+import { connectDB, disconnectDB } from "./config/db";
+import { config } from "./config/env";
 
 async function start(): Promise<void> {
-  await connectDatabase();
+  await connectDB();
 
   const app = buildApp({
     corsOrigin: config.corsOrigin,
@@ -19,7 +19,7 @@ async function start(): Promise<void> {
   const shutdown = async (signal: string): Promise<void> => {
     console.log(`\n[server] ${signal} received, shutting down...`);
     server.close();
-    await disconnectDatabase();
+    await disconnectDB();
     process.exit(0);
   };
 
