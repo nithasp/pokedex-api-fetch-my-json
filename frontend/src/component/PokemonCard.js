@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useRef, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { animateScroll as scroll } from "react-scroll";
@@ -15,27 +15,38 @@ import topButton from "../images/arrowtop-removebg-preview.png";
 
 const PokemonCard = ({ pokemonFilter }) => {
   const {
-    pokemonEndPoint,
-    setPokemonEndPoint,
     typesColor,
     scrollTopPosition,
     setScrollTopPosition,
+    loadMorePokemon,
+    pagination,
+    loadingMore,
   } = useContext(PokedexContext);
-  const [pokemonChildrenLength, setPokemonChildrenLength] = useState(0);
-  const handleFirstRender = useRef(true);
   const wrapPokemonItem = useRef(null);
 
-  const handleLoadingMore = () => {
-    setPokemonEndPoint(pokemonEndPoint + 12);
+  const hasMore =
+    pagination &&
+    pagination.totalPages > 0 &&
+    pagination.page < pagination.totalPages;
+
+  const handleLoadingMore = async () => {
     const wrapPokeCard = wrapPokemonItem.current;
-    const elem = wrapPokeCard.children[wrapPokeCard.children.length - 1];
-    const elemTop = elem.offsetTop;
-    const elemBottom = elemTop + elem.offsetHeight;
-    scroll.scrollTo(elemBottom + 110, {
-      duration: 500,
-      delay: 300,
-      smooth: true,
-    });
+    const lastBefore = wrapPokeCard
+      ? wrapPokeCard.children[wrapPokeCard.children.length - 1]
+      : null;
+
+    await loadMorePokemon();
+
+    // After the new items render, scroll to where the previous last card ended.
+    if (lastBefore) {
+      const elemTop = lastBefore.offsetTop;
+      const elemBottom = elemTop + lastBefore.offsetHeight;
+      scroll.scrollTo(elemBottom + 110, {
+        duration: 500,
+        delay: 300,
+        smooth: true,
+      });
+    }
   };
 
   const goTop = () => {
@@ -45,16 +56,6 @@ const PokemonCard = ({ pokemonFilter }) => {
       smooth: true,
     });
   };
-
-  useEffect(() => {
-    if (handleFirstRender.current === true) {
-      handleFirstRender.current = false;
-    } else {
-      if (pokemonFilter.length > 0) {
-        setPokemonChildrenLength(wrapPokemonItem.current.children.length);
-      }
-    }
-  }, [pokemonEndPoint, pokemonFilter]);
 
   useEffect(() => {
     window.scrollTo(0, scrollTopPosition);
@@ -83,15 +84,14 @@ const PokemonCard = ({ pokemonFilter }) => {
     <>
       <WrapGoTopButton onClick={() => goTop()} className="go-top-btn" />
       <PokemonRow className="pokemon-row" ref={wrapPokemonItem}>
-        {pokemonFilter.slice(0, pokemonEndPoint).map((value, index) => {
-          const { id, name, types } = value;
+        {pokemonFilter.map((value, index) => {
+          const { id, name, types, image } = value;
 
+          const paddedId =
+            id < 10 ? `00${id}` : id < 100 ? `0${id}` : `${id}`;
           const pokemonImage =
-            id < 10
-              ? `https://assets.pokemon.com/assets/cms2/img/pokedex/detail/00${id}.png`
-              : id < 100
-              ? `https://assets.pokemon.com/assets/cms2/img/pokedex/detail/0${id}.png`
-              : `https://assets.pokemon.com/assets/cms2/img/pokedex/detail/${id}.png`;
+            (image && (image.detail || image.full)) ||
+            `https://assets.pokemon.com/assets/cms2/img/pokedex/detail/${paddedId}.png`;
 
           const firstCharUpperCaseName = name
             .split(" ")
@@ -146,14 +146,15 @@ const PokemonCard = ({ pokemonFilter }) => {
 
       <LoadingMore className="loading-more-button">
         <div className="wrap-button">
-          {pokemonChildrenLength >= pokemonFilter.length ? (
+          {!hasMore ? (
             <button className="no-more-item">No More Item</button>
           ) : (
             <button
               className="loading-more"
               onClick={() => handleLoadingMore()}
+              disabled={loadingMore}
             >
-              Loading More...
+              {loadingMore ? "Loading..." : "Loading More..."}
             </button>
           )}
         </div>

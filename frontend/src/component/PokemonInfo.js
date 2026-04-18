@@ -5,6 +5,13 @@ import { Link, useParams } from "react-router-dom";
 // Context
 import { PokedexContext } from "../context/PokedexContext";
 
+// Service & mapper (same data normalization the list page uses)
+import { getPokemonById } from "../core/services/pokedex.service";
+import {
+  mapPokemon,
+  mapPokemonSummary,
+} from "../core/services/pokedex.mapper";
+
 // Images
 import pokemonBackground2 from "../images/pokemon_bg2-2.jpg";
 import pokemonBackgroundBottom from "../images/main_sp_bg_bottom.jpg";
@@ -30,32 +37,73 @@ import arrowRight from "../images/arrow_right_btn.png";
 import arrowRightActive from "../images/arrow_right_btn_on.png";
 
 const PokemonInfo = () => {
-  const { loading, typesColor, pokemonFullInformation } =
-    useContext(PokedexContext);
-
-  const [isImgLoading, setIsImgLoading] = useState(true);
+  const { typesColor } = useContext(PokedexContext);
 
   const { id: id_url } = useParams();
-  const pokemonIndex = parseInt(id_url - 1);
+  const numericId = parseInt(id_url, 10);
+
+  const [currentPokemon, setCurrentPokemon] = useState(null);
+  const [prevPokemon, setPrevPokemon] = useState(null);
+  const [nextPokemon, setNextPokemon] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isImgLoading, setIsImgLoading] = useState(true);
+
+  // Fetch current + prev + next from the API whenever the id changes.
+  // Prev/next failures (e.g. boundaries like id=1 or id=last) are silently
+  // ignored so the navigator simply hides those buttons.
+  useEffect(() => {
+    if (!Number.isFinite(numericId)) {
+      setError("Invalid pokemon id");
+      setLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setIsImgLoading(true);
+    setCurrentPokemon(null);
+    setPrevPokemon(null);
+    setNextPokemon(null);
+
+    const load = async () => {
+      try {
+        const current = await getPokemonById(numericId);
+        if (cancelled) return;
+        setCurrentPokemon(mapPokemon(current));
+
+        const [prev, next] = await Promise.all([
+          numericId > 1
+            ? getPokemonById(numericId - 1).catch(() => null)
+            : Promise.resolve(null),
+          getPokemonById(numericId + 1).catch(() => null),
+        ]);
+        if (cancelled) return;
+        setPrevPokemon(mapPokemonSummary(prev));
+        setNextPokemon(mapPokemonSummary(next));
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Failed to load pokemon");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [numericId]);
 
   const pokemonImage =
-    id_url < 10
-      ? `https://assets.pokemon.com/assets/cms2/img/pokedex/full/00${id_url}.png`
-      : id_url < 100
-      ? `https://assets.pokemon.com/assets/cms2/img/pokedex/full/0${id_url}.png`
-      : `https://assets.pokemon.com/assets/cms2/img/pokedex/full/${id_url}.png`;
+    (currentPokemon &&
+      currentPokemon.image &&
+      (currentPokemon.image.full || currentPokemon.image.detail)) ||
+    "";
 
-  const prevPokemon = pokemonFullInformation
-    ? pokemonFullInformation[pokemonIndex - 1]
-    : undefined;
-  const nextPokemon = pokemonFullInformation
-    ? pokemonFullInformation[pokemonIndex + 1]
-    : undefined;
   const errorImg = `/public_images/pokemon-notfound/poke${id_url}.png`;
 
-  const errorCondition =
-    !Array.isArray(pokemonFullInformation) ||
-    pokemonFullInformation.length <= 0;
+  const errorCondition = !!error || !currentPokemon;
 
   const deleteAnimationBar = () => {
     // Scroll
@@ -98,7 +146,7 @@ const PokemonInfo = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [numericId]);
 
   return (
     <WrapPokemonInfoSection className="wrap-pokemon-info-section">
@@ -184,10 +232,10 @@ const PokemonInfo = () => {
                 <div className="wrap-image">
                   <div className="pokemon-info-title">
                     <h3 className="pokemonID">
-                      No. {pokemonFullInformation[pokemonIndex].id}
+                      No. {currentPokemon.id}
                     </h3>
                     <h1 className="name">
-                      {pokemonFullInformation[pokemonIndex].name}
+                      {currentPokemon.name}
                     </h1>
                   </div>
                   <div className="wrap-pokemon-image">
@@ -216,12 +264,12 @@ const PokemonInfo = () => {
                   <span>Height</span>
                   <div className="wrap-height">
                     <span className="cm">
-                      {pokemonFullInformation[pokemonIndex].height.centimeter}{" "}
+                      {currentPokemon.height.centimeter}{" "}
                       cm
                     </span>
                     <span className="seperate">&nbsp;/&nbsp;</span>
                     <span className="ft">
-                      {pokemonFullInformation[pokemonIndex].height.feet} ft
+                      {currentPokemon.height.feet} ft
                     </span>
                   </div>
                 </div>
@@ -229,28 +277,28 @@ const PokemonInfo = () => {
                   <span>Weight</span>
                   <div className="wrap-weight">
                     <span className="kg">
-                      {pokemonFullInformation[pokemonIndex].weight.killogram} kg
+                      {currentPokemon.weight.killogram} kg
                     </span>
                     <span className="seperate">&nbsp;/&nbsp;</span>
                     <span className="lbs">
-                      {pokemonFullInformation[pokemonIndex].weight.pound} lbs
+                      {currentPokemon.weight.pound} lbs
                     </span>
                   </div>
                 </div>
                 <div className="info capture-rate">
                   <span>Capture Rate</span>
                   <span>
-                    {pokemonFullInformation[pokemonIndex].captureRate}
+                    {currentPokemon.captureRate}
                   </span>
                 </div>
                 <div className="info hatch-steps">
                   <span>Hatch Steps</span>
-                  <span>{pokemonFullInformation[pokemonIndex].hatchSteps}</span>
+                  <span>{currentPokemon.hatchSteps}</span>
                 </div>
                 <div className="info abilities">
                   <span>Abilities</span>
                   <div className="wrap-abilities">
-                    {pokemonFullInformation[pokemonIndex].abilities.map(
+                    {currentPokemon.abilities.map(
                       (ability) => {
                         return <span key={ability}>{ability}</span>;
                       }
@@ -262,7 +310,7 @@ const PokemonInfo = () => {
                 <div className="types">
                   <h4 className="thicker">Types</h4>
                   <div className="wrap-types">
-                    {pokemonFullInformation[pokemonIndex].types.map((type) => {
+                    {currentPokemon.types.map((type) => {
                       const typeLowerCase = type.toLowerCase();
                       return (
                         <span
@@ -282,14 +330,14 @@ const PokemonInfo = () => {
                   <h4>Gender Ratio</h4>
                   <div className="wrap-line">
                     {/* Male */}
-                    {pokemonFullInformation[pokemonIndex].genderRatio
+                    {currentPokemon.genderRatio
                       .originalRate > -1 &&
-                      pokemonFullInformation[pokemonIndex].genderRatio
+                      currentPokemon.genderRatio
                         .maleRate > 0 && (
                         <div
                           className="gender male"
                           style={{
-                            width: `${pokemonFullInformation[pokemonIndex].genderRatio.maleRate}%`,
+                            width: `${currentPokemon.genderRatio.maleRate}%`,
                           }}
                         >
                           <div className="graph">
@@ -299,14 +347,14 @@ const PokemonInfo = () => {
                       )}
 
                     {/* Female */}
-                    {pokemonFullInformation[pokemonIndex].genderRatio
+                    {currentPokemon.genderRatio
                       .originalRate > -1 &&
-                      pokemonFullInformation[pokemonIndex].genderRatio
+                      currentPokemon.genderRatio
                         .femaleRate > 0 && (
                         <div
                           className="gender female"
                           style={{
-                            width: `${pokemonFullInformation[pokemonIndex].genderRatio.femaleRate}%`,
+                            width: `${currentPokemon.genderRatio.femaleRate}%`,
                           }}
                         >
                           <div className="graph">
@@ -316,7 +364,7 @@ const PokemonInfo = () => {
                       )}
 
                     {/* Unknown Gender */}
-                    {pokemonFullInformation[pokemonIndex].genderRatio
+                    {currentPokemon.genderRatio
                       .originalRate === -1 && (
                       <div
                         className="gender unknown"
@@ -331,27 +379,27 @@ const PokemonInfo = () => {
                     )}
                   </div>
                   <div className="ratio-percent">
-                    {pokemonFullInformation[pokemonIndex].genderRatio
+                    {currentPokemon.genderRatio
                       .originalRate >= 0 ? (
                       <>
-                        {pokemonFullInformation[pokemonIndex].genderRatio
+                        {currentPokemon.genderRatio
                           .maleRate > 0 && (
                           <span className="male thicker">
                             Male:&nbsp;
                             {
-                              pokemonFullInformation[pokemonIndex].genderRatio
+                              currentPokemon.genderRatio
                                 .maleRate
                             }
                             %
                           </span>
                         )}
 
-                        {pokemonFullInformation[pokemonIndex].genderRatio
+                        {currentPokemon.genderRatio
                           .femaleRate > 0 && (
                           <span className="female thicker">
                             Female:&nbsp;
                             {
-                              pokemonFullInformation[pokemonIndex].genderRatio
+                              currentPokemon.genderRatio
                                 .femaleRate
                             }
                             %
@@ -368,26 +416,21 @@ const PokemonInfo = () => {
                 <div className="wrap-group-and-evs">
                   <div className="egg-group">
                     <h4>
-                      {pokemonFullInformation[pokemonIndex].egg_groups.length >
-                      1
+                      {currentPokemon.eggGroups.length > 1
                         ? "Egg Groups"
                         : "Egg Group"}
                     </h4>
-                    {pokemonFullInformation[pokemonIndex].egg_groups.length >
-                    0 ? (
-                      pokemonFullInformation[pokemonIndex].egg_groups.map(
-                        (group, index) => {
-                          return <span key={group}>{group}</span>;
-                        }
-                      )
+                    {currentPokemon.eggGroups.length > 0 ? (
+                      currentPokemon.eggGroups.map((group) => {
+                        return <span key={group}>{group}</span>;
+                      })
                     ) : (
                       <span>Undiscovered</span>
                     )}
                   </div>
                   <div className="EVs">
                     <h4>EVs</h4>
-                    {/* <span>{pokemonFullInformation[pokemonIndex].EVs}</span> */}
-                    {pokemonFullInformation[pokemonIndex].EVs.map((evs) => {
+                    {currentPokemon.evs.map((evs) => {
                       return <span key={evs}>{evs}</span>;
                     })}
                   </div>
@@ -396,7 +439,7 @@ const PokemonInfo = () => {
               <div className="pokemon-info-section4">
                 <div className="info description">
                   <h4 className="thicker">Description</h4>
-                  <p>{pokemonFullInformation[pokemonIndex].description}</p>
+                  <p>{currentPokemon.description}</p>
                 </div>
               </div>
               <div className="pokemon-info-section5">
@@ -408,12 +451,12 @@ const PokemonInfo = () => {
                       <div
                         className="bar-value"
                         style={{
-                          width: `${pokemonFullInformation[pokemonIndex].stats.hp}%`,
+                          width: `${currentPokemon.stats.hp}%`,
                         }}
                       >
                         <div className="bar-value2">
                           <span className="text-value">
-                            {pokemonFullInformation[pokemonIndex].stats.hp}
+                            {currentPokemon.stats.hp}
                           </span>
                         </div>
                         <span className="dummy-block">2</span>
@@ -427,12 +470,12 @@ const PokemonInfo = () => {
                       <div
                         className="bar-value"
                         style={{
-                          width: `${pokemonFullInformation[pokemonIndex].stats.attack}%`,
+                          width: `${currentPokemon.stats.attack}%`,
                         }}
                       >
                         <div className="bar-value2">
                           <span className="text-value">
-                            {pokemonFullInformation[pokemonIndex].stats.attack}
+                            {currentPokemon.stats.attack}
                           </span>
                         </div>
                         <span className="dummy-block">2</span>
@@ -445,12 +488,12 @@ const PokemonInfo = () => {
                       <div
                         className="bar-value"
                         style={{
-                          width: `${pokemonFullInformation[pokemonIndex].stats.defense}%`,
+                          width: `${currentPokemon.stats.defense}%`,
                         }}
                       >
                         <div className="bar-value2">
                           <span className="text-value">
-                            {pokemonFullInformation[pokemonIndex].stats.defense}
+                            {currentPokemon.stats.defense}
                           </span>
                         </div>
                         <span className="dummy-block">2</span>
@@ -464,12 +507,12 @@ const PokemonInfo = () => {
                       <div
                         className="bar-value"
                         style={{
-                          width: `${pokemonFullInformation[pokemonIndex].stats.speed}%`,
+                          width: `${currentPokemon.stats.speed}%`,
                         }}
                       >
                         <div className="bar-value2">
                           <span className="text-value">
-                            {pokemonFullInformation[pokemonIndex].stats.speed}
+                            {currentPokemon.stats.speed}
                           </span>
                         </div>
                         <span className="dummy-block">2</span>
@@ -483,16 +526,12 @@ const PokemonInfo = () => {
                       <div
                         className="bar-value"
                         style={{
-                          width: `${pokemonFullInformation[pokemonIndex].stats["special-attack"]}%`,
+                          width: `${currentPokemon.stats.specialAttack}%`,
                         }}
                       >
                         <div className="bar-value2">
                           <span className="text-value">
-                            {
-                              pokemonFullInformation[pokemonIndex].stats[
-                                "special-attack"
-                              ]
-                            }
+                            {currentPokemon.stats.specialAttack}
                           </span>
                         </div>
                         <span className="dummy-block">2</span>
@@ -506,16 +545,12 @@ const PokemonInfo = () => {
                       <div
                         className="bar-value"
                         style={{
-                          width: `${pokemonFullInformation[pokemonIndex].stats["special-defense"]}%`,
+                          width: `${currentPokemon.stats.specialDefense}%`,
                         }}
                       >
                         <div className="bar-value2">
                           <span className="text-value">
-                            {
-                              pokemonFullInformation[pokemonIndex].stats[
-                                "special-defense"
-                              ]
-                            }
+                            {currentPokemon.stats.specialDefense}
                           </span>
                         </div>
                         <span className="dummy-block">2</span>
