@@ -1,7 +1,36 @@
 import { Request, Response } from "express";
+import { config } from "../config/env";
 import { Pokemon } from "../models/pokemon";
 import type { ListPokemonQuery, PokemonIdParams } from "../routes/pokemon-routes";
 import { HttpError, buildPagination, ok } from "../utils/response";
+
+/**
+ * Attach the full CDN URL to a pokemon's image paths.
+ *
+ * MongoDB stores only the relative path:
+ *   "images/pokemon/full/004.png"
+ *
+ * R2_PUBLIC_URL env var holds the CDN base (never changes regardless of backend host):
+ *   "https://pub-XXXX.r2.dev"
+ *
+ * Result in API response:
+ *   "https://pub-XXXX.r2.dev/images/pokemon/full/004.png"
+ *
+ * To switch CDN providers: change R2_PUBLIC_URL in .env — DB stays untouched.
+ */
+function withImageUrls<T extends { image?: { full?: string | null; detail?: string | null } | null }>(
+  pokemon: T
+): T {
+  const base = config.r2PublicUrl;
+  if (!base || !pokemon.image) return pokemon;
+  return {
+    ...pokemon,
+    image: {
+      full: pokemon.image.full ? `${base}/${pokemon.image.full}` : null,
+      detail: pokemon.image.detail ? `${base}/${pokemon.image.detail}` : null,
+    },
+  };
+}
 
 // GET /api/pokemon — paginated list, filter by type and/or name search
 export const getPokemons = async (req: Request, res: Response) => {
@@ -20,7 +49,7 @@ export const getPokemons = async (req: Request, res: Response) => {
     Pokemon.countDocuments(filter),
   ]);
 
-  return ok(res, items, buildPagination(page, limit, total));
+  return ok(res, items.map(withImageUrls), buildPagination(page, limit, total));
 };
 
 // GET /api/pokemon/:id — single pokemon by national dex number
@@ -32,5 +61,5 @@ export const getPokemon = async (req: Request, res: Response) => {
     throw new HttpError(404, `Pokemon #${id} not found`, "POKEMON_NOT_FOUND");
   }
 
-  return ok(res, pokemon);
+  return ok(res, withImageUrls(pokemon));
 };

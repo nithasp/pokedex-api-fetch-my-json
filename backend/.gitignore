@@ -7,3 +7,6 @@ npm-debug.log*
 *.tsbuildinfo
 .DS_Store
 coverage/
+
+# Downloaded Pokemon images — stored in Cloudflare R2, not in git
+public/images/

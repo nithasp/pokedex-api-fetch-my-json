@@ -13,6 +13,9 @@ export const config = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   mongoUri: required("MONGO_URI"),
   corsOrigin: process.env.CORS_ORIGIN ?? "*",
+  // Public base URL for Cloudflare R2 bucket (no trailing slash)
+  // e.g. https://pub-XXXX.r2.dev  or  https://images.yourdomain.com
+  r2PublicUrl: (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, ""),
 } as const;
 
 export type AppConfig = typeof config;
