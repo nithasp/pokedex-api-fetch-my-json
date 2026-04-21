@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_URL =
   process.env.REACT_APP_API_URL ||
-  "https://pokedex-api-fetch-my-json.onrender.com/api/pokemon";
+  "";
 
 const apiClient = axios.create({
   baseURL: API_URL,
