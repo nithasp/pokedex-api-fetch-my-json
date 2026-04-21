@@ -98,8 +98,8 @@ const GlobalContext = ({ children }) => {
     if (pg) setSearchPagination(pg);
   }, []);
 
-  // Initial load: page 1, default 12 items. Seeds both the main grid and the
-  // dropdown so the dropdown has something to show on first focus.
+  // Initial load: page 1, default 12 items. Seeds the main grid only.
+  // The dropdown is left empty until the user starts typing.
   const getData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -112,7 +112,6 @@ const GlobalContext = ({ children }) => {
       });
       const mapped = data.map(mapPokemon);
       applyMainList(mapped, pg);
-      applySearchDropdown(mapped, pg);
     } catch (err) {
       setError(err.message || "Failed to load pokemon");
       setPokemon([]);
@@ -124,7 +123,7 @@ const GlobalContext = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [applyMainList, applySearchDropdown]);
+  }, [applyMainList]);
 
   // Load next page (12 more items) for the MAIN grid only (search-aware).
   const loadMorePokemon = useCallback(async () => {
@@ -254,6 +253,7 @@ const GlobalContext = ({ children }) => {
         searchPokemon,
         searchPokemonDropdown,
         searchLoading,
+        setSearchLoading,
 
         // Pagination
         pagination,

@@ -19,6 +19,7 @@ const SCROLL_BOTTOM_THRESHOLD_PX = 60;
 const SearchBar = () => {
   const {
     pokemonSearchData,
+    setPokemonSearchData,
     pokemonName,
     setPokemonName,
     searchPokemon,
@@ -27,6 +28,7 @@ const SearchBar = () => {
     loadMoreSearchDropdown,
     searchPagination,
     searchLoading,
+    setSearchLoading,
     searchLoadingMore,
   } = useContext(PokedexContext);
 
@@ -53,6 +55,17 @@ const SearchBar = () => {
   const handleSearch = (value) => {
     setPokemonName(value);
     setShowSearchBar(value.length > 0);
+
+    // Flip the dropdown to the "loading" state immediately so the user never
+    // sees stale results or a brief "No results" flash during the debounce
+    // window. The actual fetch still happens after the debounce in the effect
+    // below.
+    if (value.length > 0) {
+      setSearchLoading(true);
+      setPokemonSearchData([]);
+    } else {
+      setSearchLoading(false);
+    }
   };
 
   const handleCloseSearch = (event) => {
@@ -74,11 +87,14 @@ const SearchBar = () => {
 
   // Debounced search: hits the API after the user stops typing.
   // Only updates the dropdown list — the main pokemon grid is untouched.
+  // Skip the call entirely when the input is empty.
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
+
+    if (!pokemonName) return;
 
     const handle = setTimeout(() => {
       searchPokemonDropdown(pokemonName);
