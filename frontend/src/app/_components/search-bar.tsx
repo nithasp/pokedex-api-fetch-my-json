@@ -49,7 +49,17 @@ export function SearchBar() {
       .filter((p): p is Pokemon => p !== null);
   }, [data]);
 
-  const isSearching = isLoading && pokemonName.length > 0;
+  // A search is still "in flight" when:
+  //  - the user typed something but the debounced term hasn't caught up yet
+  //    (i.e. we're still inside the debounce window), OR
+  //  - the query for the current term is actively loading.
+  // Showing the loader during BOTH phases prevents a flash of "No results"
+  // before the request even starts.
+  const trimmedName = pokemonName.trim();
+  const isSearching =
+    trimmedName.length > 0 && (isLoading || trimmedName !== debouncedTerm);
+  const showNoResults =
+    !isSearching && trimmedName.length > 0 && dropdownItems.length === 0;
 
   const handleInputChange = (value: string) => {
     setPokemonName(value);
@@ -133,7 +143,7 @@ export function SearchBar() {
               />
               <span>Searching...</span>
             </div>
-          ) : dropdownItems.length === 0 ? (
+          ) : showNoResults ? (
             <div className="pokemon-item no-results">
               <div className="pokemon-name">
                 <h3>No results</h3>
