@@ -1,3 +1,4 @@
+import { DEFAULT_PAGINATION } from "@/shared/utils/pagination";
 import type {
   ApiResponse,
   ApiSuccess,
@@ -8,13 +9,6 @@ import type {
   PokemonSummary,
   RawPokemon,
 } from "@/types/pokemon.types";
-
-export const EMPTY_PAGINATION: PaginationMeta = {
-  page: 1,
-  limit: 12,
-  total: 0,
-  totalPages: 0,
-};
 
 const isApiSuccess = <T>(
   response: ApiResponse<T> | undefined
@@ -98,7 +92,7 @@ export const selectPokemonPagination = (
 ): PaginationMeta =>
   isApiSuccess(response) && response.pagination
     ? response.pagination
-    : EMPTY_PAGINATION;
+    : DEFAULT_PAGINATION;
 
 export const selectRawPokemon = (
   response: ApiResponse<RawPokemon> | undefined

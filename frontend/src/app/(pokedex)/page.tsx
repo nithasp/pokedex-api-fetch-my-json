@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSearchTerm, useScrollTopPosition } from "@/stores";
-import { useGetPokemonInfinite } from "@/shared/hooks/queries";
+import { useGetPokemonList } from "@/shared/hooks/queries";
 import { PokemonList } from "./_components/pokemon-list";
 import { SearchBar } from "./_components/search-bar";
 
@@ -13,7 +13,7 @@ export default function HomePage() {
   // Drive the global loader from the main grid query — typing in the search
   // bar updates the dropdown via a separate query, so this loader only flips
   // on the initial fetch and on submitted searches.
-  const { isLoading } = useGetPokemonInfinite(searchTerm);
+  const { isLoading } = useGetPokemonList({ search: searchTerm });
 
   // Restore the saved scroll position when returning from the detail page.
   useEffect(() => {

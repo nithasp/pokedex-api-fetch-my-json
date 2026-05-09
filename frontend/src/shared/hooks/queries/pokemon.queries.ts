@@ -4,18 +4,17 @@ import {
   type InfiniteData,
 } from "@tanstack/react-query";
 import { pokedexService } from "@/services";
+import { buildPokemonListParams } from "@/shared/builders/pokemon.builders";
 import { getNextPageNumber } from "@/shared/selectors/pokemon.selectors";
 import type { ApiResponse } from "@/types/api.types";
-import type { RawPokemon } from "@/types/pokemon.types";
+import type { PokemonListFilters, RawPokemon } from "@/types/pokemon.types";
 import type { QueryOpts } from "@/types/query.types";
 import { queryKeys } from "./query-keys";
 import { isValidId } from "./query.utils";
 
 type Id = string | number;
 
-const PAGE_LIMIT = 12;
-
-export const useGetPokemonInfinite = (search = "", type = "") =>
+export const useGetPokemonList = (input: PokemonListFilters = {}) =>
   useInfiniteQuery<
     ApiResponse<RawPokemon[]>,
     Error,
@@ -23,14 +22,11 @@ export const useGetPokemonInfinite = (search = "", type = "") =>
     ReturnType<typeof queryKeys.pokemon.list>,
     number
   >({
-    queryKey: queryKeys.pokemon.list({ search, type }),
-    queryFn: ({ pageParam = 1 }) =>
-      pokedexService.getPokemonList({
-        page: pageParam,
-        limit: PAGE_LIMIT,
-        search,
-        type,
-      }),
+    queryKey: queryKeys.pokemon.list(input),
+    queryFn: ({ pageParam }) => {
+      const filters = buildPokemonListParams(input, pageParam);
+      return pokedexService.getPokemonList(filters);
+    },
     initialPageParam: 1,
     getNextPageParam: getNextPageNumber,
   });
@@ -44,12 +40,10 @@ export const useGetPokemonSearchDropdownInfinite = (search: string) =>
     number
   >({
     queryKey: queryKeys.pokemon.searchDropdown(search),
-    queryFn: ({ pageParam = 1 }) =>
-      pokedexService.getPokemonList({
-        page: pageParam,
-        limit: PAGE_LIMIT,
-        search,
-      }),
+    queryFn: ({ pageParam }) => {
+      const filters = buildPokemonListParams({ search }, pageParam);
+      return pokedexService.getPokemonList(filters);
+    },
     enabled: search.length > 0,
     initialPageParam: 1,
     getNextPageParam: getNextPageNumber,

@@ -98,6 +98,14 @@ export interface GetPokemonListParams {
   type?: string;
 }
 
+/**
+ * Static filters shared across every page of an infinite list query.
+ * `page` is supplied per-page by React Query's `pageParam`; everything else
+ * (search, type, limit, …) flows through unchanged so new filter fields on
+ * `GetPokemonListParams` are picked up automatically.
+ */
+export type PokemonListFilters = Omit<GetPokemonListParams, "page">;
+
 export interface PokemonListResult {
   data: RawPokemon[];
   pagination: {
