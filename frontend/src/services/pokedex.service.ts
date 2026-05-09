@@ -1,12 +1,10 @@
 import api from "@/lib/axios";
 import { buildListParams } from "@/shared/utils/function";
-import type { ApiResponse } from "@/types/api.types";
+import type { ApiResponse, Id } from "@/types/api.types";
 import type {
   GetPokemonListParams,
   RawPokemon,
 } from "@/types/pokemon.types";
-
-type Id = string | number;
 
 export const pokedexService = {
   getPokemonList: async (input: GetPokemonListParams = {}) => {

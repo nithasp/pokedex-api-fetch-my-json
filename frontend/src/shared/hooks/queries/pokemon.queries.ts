@@ -6,13 +6,11 @@ import {
 import { pokedexService } from "@/services";
 import { buildPokemonListParams } from "@/shared/builders/pokemon.builders";
 import { getNextPageNumber } from "@/shared/selectors/pokemon.selectors";
-import type { ApiResponse } from "@/types/api.types";
+import type { ApiResponse, Id } from "@/types/api.types";
 import type { PokemonListFilters, RawPokemon } from "@/types/pokemon.types";
 import type { QueryOpts } from "@/types/query.types";
 import { queryKeys } from "./query-keys";
 import { isValidId } from "./query.utils";
-
-type Id = string | number;
 
 export const useGetPokemonList = (input: PokemonListFilters = {}) =>
   useInfiniteQuery<

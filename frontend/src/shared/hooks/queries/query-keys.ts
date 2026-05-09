@@ -1,3 +1,4 @@
+import type { Id } from "@/types/api.types";
 import type { GetPokemonListParams } from "@/types/pokemon.types";
 
 export const queryKeys = {
@@ -14,7 +15,6 @@ export const queryKeys = {
     /** Search dropdown (paginated by `page`, debounced search). */
     searchDropdown: (search: string) =>
       ["pokemon", "search-dropdown", search] as const,
-    detail: (id: string | number) =>
-      ["pokemon", "detail", String(id)] as const,
+    detail: (id: Id) => ["pokemon", "detail", String(id)] as const,
   },
 } as const;
