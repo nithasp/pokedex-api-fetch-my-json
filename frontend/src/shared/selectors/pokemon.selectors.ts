@@ -1,15 +1,28 @@
 import type {
+  ApiResponse,
+  ApiSuccess,
+  PaginationMeta,
+} from "@/types/api.types";
+import type {
   Pokemon,
   PokemonSummary,
   RawPokemon,
 } from "@/types/pokemon.types";
 
-/**
- * Normalize a raw API pokemon object into the shape the UI expects.
- * Shared by the list view and the detail view so both pages apply the
- * exact same transformation.
- */
-export const mapPokemon = (item: RawPokemon | null | undefined): Pokemon | null => {
+export const EMPTY_PAGINATION: PaginationMeta = {
+  page: 1,
+  limit: 12,
+  total: 0,
+  totalPages: 0,
+};
+
+const isApiSuccess = <T>(
+  response: ApiResponse<T> | undefined
+): response is ApiSuccess<T> => !!response && response.success === true;
+
+export const mapPokemon = (
+  item: RawPokemon | null | undefined
+): Pokemon | null => {
   if (!item) return null;
 
   const heightDecimetres = Number(item.height) || 0;
@@ -57,10 +70,6 @@ export const mapPokemon = (item: RawPokemon | null | undefined): Pokemon | null 
   };
 };
 
-/**
- * Lightweight projection used for the prev/next navigator on the detail page.
- * Keeps only what the navigator renders.
- */
 export const mapPokemonSummary = (
   item: RawPokemon | null | undefined
 ): PokemonSummary | null => {
@@ -70,4 +79,44 @@ export const mapPokemonSummary = (
     name: item.name,
     image: item.image || { full: "", detail: "" },
   };
+};
+
+export const selectRawPokemonList = (
+  response: ApiResponse<RawPokemon[]> | undefined
+): RawPokemon[] =>
+  isApiSuccess(response) && Array.isArray(response.data) ? response.data : [];
+
+export const selectPokemonList = (
+  response: ApiResponse<RawPokemon[]> | undefined
+): Pokemon[] =>
+  selectRawPokemonList(response)
+    .map(mapPokemon)
+    .filter((item): item is Pokemon => item !== null);
+
+export const selectPokemonPagination = (
+  response: ApiResponse<RawPokemon[]> | undefined
+): PaginationMeta =>
+  isApiSuccess(response) && response.pagination
+    ? response.pagination
+    : EMPTY_PAGINATION;
+
+export const selectRawPokemon = (
+  response: ApiResponse<RawPokemon> | undefined
+): RawPokemon | null => (isApiSuccess(response) ? response.data : null);
+
+export const selectPokemon = (
+  response: ApiResponse<RawPokemon> | undefined
+): Pokemon | null => mapPokemon(selectRawPokemon(response));
+
+export const selectPokemonSummary = (
+  response: ApiResponse<RawPokemon> | undefined
+): PokemonSummary | null => mapPokemonSummary(selectRawPokemon(response));
+
+export const getNextPageNumber = (
+  response: ApiResponse<RawPokemon[]>
+): number | undefined => {
+  const pagination = selectPokemonPagination(response);
+  const { page, totalPages } = pagination;
+  if (totalPages > 0 && page < totalPages) return page + 1;
+  return undefined;
 };

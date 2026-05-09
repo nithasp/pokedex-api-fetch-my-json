@@ -11,7 +11,7 @@ import {
 } from "react";
 import { LazyImage } from "@/shared/components/lazy-image/lazy-image";
 import { useGetPokemonSearchDropdownInfinite } from "@/shared/hooks/queries";
-import { mapPokemon } from "@/services/pokedex.mapper";
+import { selectPokemonList } from "@/shared/selectors/pokemon.selectors";
 import { useSearchTerm, useSetSearchTerm } from "@/stores";
 import type { Pokemon } from "@/types/pokemon.types";
 
@@ -41,13 +41,10 @@ export function SearchBar() {
     isLoading,
   } = useGetPokemonSearchDropdownInfinite(debouncedTerm);
 
-  const dropdownItems: Pokemon[] = useMemo(() => {
-    if (!data) return [];
-    return data.pages
-      .flatMap((page) => page.data)
-      .map(mapPokemon)
-      .filter((p): p is Pokemon => p !== null);
-  }, [data]);
+  const dropdownItems: Pokemon[] = useMemo(
+    () => (data ? data.pages.flatMap(selectPokemonList) : []),
+    [data]
+  );
 
   // A search is still "in flight" when:
   //  - the user typed something but the debounced term hasn't caught up yet

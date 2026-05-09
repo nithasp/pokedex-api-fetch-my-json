@@ -4,25 +4,22 @@ import {
   type InfiniteData,
 } from "@tanstack/react-query";
 import { pokedexService } from "@/services";
-import { mapPokemon, mapPokemonSummary } from "@/services/pokedex.mapper";
-import type { PokemonListResult, RawPokemon } from "@/types/pokemon.types";
-import type { PokemonDetailResult } from "@/types/pokemon.queries.types";
+import { getNextPageNumber } from "@/shared/selectors/pokemon.selectors";
+import type { ApiResponse } from "@/types/api.types";
+import type { RawPokemon } from "@/types/pokemon.types";
+import type { QueryOpts } from "@/types/query.types";
 import { queryKeys } from "./query-keys";
+import { isValidId } from "./query.utils";
+
+type Id = string | number;
 
 const PAGE_LIMIT = 12;
 
-/**
- * Pokemon main grid — uses `useInfiniteQuery` for "load more" behavior.
- * Reflects the original PokedexContext.loadMorePokemon flow.
- */
-export const useGetPokemonInfinite = (
-  search = "",
-  type = ""
-) =>
+export const useGetPokemonInfinite = (search = "", type = "") =>
   useInfiniteQuery<
-    PokemonListResult,
+    ApiResponse<RawPokemon[]>,
     Error,
-    InfiniteData<PokemonListResult>,
+    InfiniteData<ApiResponse<RawPokemon[]>>,
     ReturnType<typeof queryKeys.pokemon.list>,
     number
   >({
@@ -35,22 +32,14 @@ export const useGetPokemonInfinite = (
         type,
       }),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const { page, totalPages } = lastPage.pagination;
-      if (totalPages > 0 && page < totalPages) return page + 1;
-      return undefined;
-    },
+    getNextPageParam: getNextPageNumber,
   });
 
-/**
- * Search dropdown — same endpoint, different cache key. Refetches when the
- * (debounced) search term changes. Disabled while the term is empty.
- */
 export const useGetPokemonSearchDropdownInfinite = (search: string) =>
   useInfiniteQuery<
-    PokemonListResult,
+    ApiResponse<RawPokemon[]>,
     Error,
-    InfiniteData<PokemonListResult>,
+    InfiniteData<ApiResponse<RawPokemon[]>>,
     ReturnType<typeof queryKeys.pokemon.searchDropdown>,
     number
   >({
@@ -63,47 +52,19 @@ export const useGetPokemonSearchDropdownInfinite = (search: string) =>
       }),
     enabled: search.length > 0,
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const { page, totalPages } = lastPage.pagination;
-      if (totalPages > 0 && page < totalPages) return page + 1;
-      return undefined;
-    },
+    getNextPageParam: getNextPageNumber,
   });
 
-/**
- * Single pokemon detail + prev/next neighbours. Mirrors the `PokemonInfo`
- * component effect that fetched all three in parallel.
- *
- * Prev/next failures (e.g. boundaries like id=1 or last id) are silently
- * ignored so the navigator simply hides those buttons.
- */
-export const useGetPokemonDetail = (id: number | null) =>
-  useQuery<PokemonDetailResult, Error>({
+export const useGetPokemonById = (
+  id: Id | null,
+  options?: QueryOpts<
+    ApiResponse<RawPokemon>,
+    ReturnType<typeof queryKeys.pokemon.detail>
+  >
+) =>
+  useQuery({
     queryKey: queryKeys.pokemon.detail(id ?? 0),
-    enabled: id !== null && Number.isFinite(id),
-    queryFn: async () => {
-      const numericId = id as number;
-      const current = mapPokemon(await pokedexService.getPokemonById(numericId));
-
-      const safeFetch = async (
-        targetId: number
-      ): Promise<RawPokemon | null> => {
-        try {
-          return await pokedexService.getPokemonById(targetId);
-        } catch {
-          return null;
-        }
-      };
-
-      const [prev, next] = await Promise.all([
-        numericId > 1 ? safeFetch(numericId - 1) : Promise.resolve(null),
-        safeFetch(numericId + 1),
-      ]);
-
-      return {
-        current,
-        prev: mapPokemonSummary(prev),
-        next: mapPokemonSummary(next),
-      };
-    },
+    queryFn: () => pokedexService.getPokemonById(id as Id),
+    enabled: isValidId(id),
+    ...options,
   });

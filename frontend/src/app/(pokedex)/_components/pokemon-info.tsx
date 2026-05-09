@@ -1,24 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getTypeColor } from "@/config/pokemon-types";
 import { ROUTES } from "@/config/routes";
-import { useGetPokemonDetail } from "@/shared/hooks/queries";
-import type {
-  Pokemon,
-  PokemonInfoProps,
-  PokemonSummary,
-} from "@/types/pokemon.types";
+import { useGetPokemonById } from "@/shared/hooks/queries";
+import {
+  selectPokemon,
+  selectPokemonSummary,
+} from "@/shared/selectors/pokemon.selectors";
+import type { PokemonInfoProps } from "@/types/pokemon.types";
 import { PokemonInfoNavigator } from "./pokemon-info-navigator";
 import { PokemonStatsSection } from "./pokemon-stats";
 
 export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
-  const { data, isLoading, error } = useGetPokemonDetail(numericId);
+  const prevId = numericId > 1 ? numericId - 1 : null;
+  const nextId = numericId + 1;
 
-  const currentPokemon: Pokemon | null = data?.current ?? null;
-  const prevPokemon: PokemonSummary | null = data?.prev ?? null;
-  const nextPokemon: PokemonSummary | null = data?.next ?? null;
+  const { data: currentResponse, isLoading, error } =
+    useGetPokemonById(numericId);
+  const { data: prevResponse } = useGetPokemonById(prevId);
+  const { data: nextResponse } = useGetPokemonById(nextId);
+
+  const currentPokemon = useMemo(
+    () => selectPokemon(currentResponse),
+    [currentResponse]
+  );
+  const prevPokemon = useMemo(
+    () => selectPokemonSummary(prevResponse),
+    [prevResponse]
+  );
+  const nextPokemon = useMemo(
+    () => selectPokemonSummary(nextResponse),
+    [nextResponse]
+  );
 
   const [isImgLoading, setIsImgLoading] = useState(true);
   const [statsResetKey, setStatsResetKey] = useState(0);

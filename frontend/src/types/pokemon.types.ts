@@ -55,7 +55,7 @@ export interface RawPokemon {
 
 /**
  * Normalised pokemon object consumed by the UI.
- * Produced by `mapPokemon` in `services/pokedex.mapper.ts`.
+ * Produced by `mapPokemon` in `shared/selectors/pokemon.selectors.ts`.
  */
 export interface Pokemon {
   id: number;
