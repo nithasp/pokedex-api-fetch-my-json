@@ -1,17 +1,8 @@
 import { create } from "zustand";
-
-interface PokedexUIState {
-  /** Submitted search term — drives the main grid query. */
-  searchTerm: string;
-  /** Saved scroll position for returning to the home page from a detail page. */
-  scrollTopPosition: number;
-}
-
-interface PokedexUIActions {
-  setSearchTerm: (term: string) => void;
-  setScrollTopPosition: (y: number) => void;
-  reset: () => void;
-}
+import type {
+  PokedexUIActions,
+  PokedexUIState,
+} from "@/types/pokedex.store.types";
 
 const INITIAL_STATE: PokedexUIState = {
   searchTerm: "",

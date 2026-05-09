@@ -1,3 +1,23 @@
+export type PokemonTypeName =
+  | "grass"
+  | "fire"
+  | "water"
+  | "normal"
+  | "flying"
+  | "bug"
+  | "poison"
+  | "electric"
+  | "ground"
+  | "fighting"
+  | "psychic"
+  | "rock"
+  | "ice"
+  | "ghost"
+  | "dragon"
+  | "dark"
+  | "steel"
+  | "fairy";
+
 export interface PokemonImage {
   full?: string;
   detail?: string;
@@ -86,4 +106,33 @@ export interface PokemonListResult {
     total: number;
     totalPages: number;
   };
+}
+
+export interface PokemonCardListProps {
+  pokemon: Pokemon[];
+  hasMore: boolean;
+  isFetchingMore: boolean;
+  onLoadMore: () => void;
+}
+
+export interface PokemonInfoProps {
+  numericId: number;
+  routeId: string;
+}
+
+export interface PokemonInfoNavigatorProps {
+  currentId: number;
+  prevPokemon: PokemonSummary | null;
+  nextPokemon: PokemonSummary | null;
+  onNavigate: () => void;
+}
+
+export interface PokemonStatsSectionProps {
+  stats: PokemonStats;
+  /**
+   * Triggers the bar-fill animation by toggling the `active` class on the
+   * status wrapper. Bumping this number forces the animation to replay
+   * (used when navigating between pokemon).
+   */
+  resetKey: number;
 }

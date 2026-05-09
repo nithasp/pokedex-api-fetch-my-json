@@ -5,14 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { getTypeColor } from "@/config/pokemon-types";
 import { ROUTES } from "@/config/routes";
 import { useGetPokemonDetail } from "@/shared/hooks/queries";
-import type { Pokemon, PokemonSummary } from "@/types/pokemon.types";
+import type {
+  Pokemon,
+  PokemonInfoProps,
+  PokemonSummary,
+} from "@/types/pokemon.types";
 import { PokemonInfoNavigator } from "./pokemon-info-navigator";
 import { PokemonStatsSection } from "./pokemon-stats";
-
-interface PokemonInfoProps {
-  numericId: number;
-  routeId: string;
-}
 
 export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
   const { data, isLoading, error } = useGetPokemonDetail(numericId);

@@ -1,14 +1,11 @@
+import type { SmoothScrollOptions } from "@/types/scroll.types";
+
 /**
  * Smooth-scroll helper that mirrors the duration/delay options the original
  * project consumed from `react-scroll`. Uses requestAnimationFrame and an
  * ease-in-out cubic curve so the motion looks identical to the previous
  * implementation without the extra dependency.
  */
-export interface SmoothScrollOptions {
-  duration?: number;
-  delay?: number;
-}
-
 const easeInOutCubic = (t: number): number =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 

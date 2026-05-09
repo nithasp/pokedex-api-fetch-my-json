@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { PokemonStats } from "@/types/pokemon.types";
-
-interface PokemonStatsSectionProps {
-  stats: PokemonStats;
-  /**
-   * Triggers the bar-fill animation by toggling the `active` class on the
-   * status wrapper. Bumping this number forces the animation to replay
-   * (used when navigating between pokemon).
-   */
-  resetKey: number;
-}
+import type { PokemonStats, PokemonStatsSectionProps } from "@/types/pokemon.types";
 
 const STATUS_FIELDS: Array<{
   key: keyof PokemonStats;

@@ -1,22 +1,13 @@
 "use client";
 
 import {
-  ImgHTMLAttributes,
   SyntheticEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
-
-interface LazyImageProps
-  extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "onLoad" | "onError"> {
-  src: string;
-  placeholderSrc?: string;
-  errorSrc?: string;
-  onLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
-  onError?: (event: SyntheticEvent<HTMLImageElement>) => void;
-}
+import type { LazyImageProps } from "@/types/lazy-image.types";
 
 /**
  * Drop-in replacement for `react-lazy-load-image-component` with the same

@@ -1,8 +1,7 @@
 import { RequestHandler } from "express";
 import { ZodType } from "zod";
 import { fail } from "../utils/response";
-
-type Source = "body" | "query" | "params";
+import type { Source } from "../types/validate.type";
 
 export const validate =
   <T>(schema: ZodType<T>, source: Source = "body"): RequestHandler =>

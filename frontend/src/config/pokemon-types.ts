@@ -1,22 +1,4 @@
-export type PokemonTypeName =
-  | "grass"
-  | "fire"
-  | "water"
-  | "normal"
-  | "flying"
-  | "bug"
-  | "poison"
-  | "electric"
-  | "ground"
-  | "fighting"
-  | "psychic"
-  | "rock"
-  | "ice"
-  | "ghost"
-  | "dragon"
-  | "dark"
-  | "steel"
-  | "fairy";
+import type { PokemonTypeName } from "@/types/pokemon.types";
 
 /**
  * Background color for each pokemon type badge.

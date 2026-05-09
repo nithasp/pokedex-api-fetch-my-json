@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { ROUTES } from "@/config/routes";
-import type { PokemonSummary } from "@/types/pokemon.types";
-
-interface PokemonInfoNavigatorProps {
-  currentId: number;
-  prevPokemon: PokemonSummary | null;
-  nextPokemon: PokemonSummary | null;
-  onNavigate: () => void;
-}
+import type { PokemonInfoNavigatorProps } from "@/types/pokemon.types";
 
 export function PokemonInfoNavigator({
   currentId,

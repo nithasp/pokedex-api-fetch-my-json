@@ -932,6 +932,7 @@ a:focus {
 .pokemon-info .pokemon-info-section1 .pokemon-back-circle-background {
   position: absolute;
   padding-top: 12%;
+  top: 0%;
   left: 50%;
   transform: translateX(-50%);
   height: 34vw;
@@ -941,6 +942,7 @@ a:focus {
 .pokemon-info .pokemon-info-section1 .pokemon-image-info {
   position: absolute;
   padding-top: 18%;
+  top: 0%;
   left: 50%;
   transform: translateX(-50%);
   height: 30vw;

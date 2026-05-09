@@ -7,14 +7,7 @@ import { getTypeColor } from "@/config/pokemon-types";
 import { ROUTES } from "@/config/routes";
 import { smoothScrollTo } from "@/shared/utils/scroll";
 import { useSetScrollTopPosition } from "@/stores";
-import type { Pokemon } from "@/types/pokemon.types";
-
-interface PokemonCardListProps {
-  pokemon: Pokemon[];
-  hasMore: boolean;
-  isFetchingMore: boolean;
-  onLoadMore: () => void;
-}
+import type { PokemonCardListProps } from "@/types/pokemon.types";
 
 const padId = (id: number): string => {
   if (id < 10) return `00${id}`;

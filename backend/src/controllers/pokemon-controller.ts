@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { config } from "../config/env";
 import { Pokemon } from "../models/pokemon";
-import type { ListPokemonQuery, PokemonIdParams } from "../routes/pokemon-routes";
+import type { ListPokemonQuery, PokemonIdParams } from "../types/pokemon-routes.type";
 import { HttpError, buildPagination, ok } from "../utils/response";
 
 /**

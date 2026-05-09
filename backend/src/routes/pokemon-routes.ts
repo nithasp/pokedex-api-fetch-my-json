@@ -15,9 +15,6 @@ export const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-export type ListPokemonQuery = z.infer<typeof listQuerySchema>;
-export type PokemonIdParams = z.infer<typeof idParamSchema>;
-
 export const pokemonRouter = Router();
 
 pokemonRouter.get(

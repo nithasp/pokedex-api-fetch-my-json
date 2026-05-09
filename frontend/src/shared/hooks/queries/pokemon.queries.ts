@@ -5,12 +5,8 @@ import {
 } from "@tanstack/react-query";
 import { pokedexService } from "@/services";
 import { mapPokemon, mapPokemonSummary } from "@/services/pokedex.mapper";
-import type {
-  Pokemon,
-  PokemonListResult,
-  PokemonSummary,
-  RawPokemon,
-} from "@/types/pokemon.types";
+import type { PokemonListResult, RawPokemon } from "@/types/pokemon.types";
+import type { PokemonDetailResult } from "@/types/pokemon.queries.types";
 import { queryKeys } from "./query-keys";
 
 const PAGE_LIMIT = 12;
@@ -73,12 +69,6 @@ export const useGetPokemonSearchDropdownInfinite = (search: string) =>
       return undefined;
     },
   });
-
-interface PokemonDetailResult {
-  current: Pokemon | null;
-  prev: PokemonSummary | null;
-  next: PokemonSummary | null;
-}
 
 /**
  * Single pokemon detail + prev/next neighbours. Mirrors the `PokemonInfo`

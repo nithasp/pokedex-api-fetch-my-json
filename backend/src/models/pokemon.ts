@@ -1,6 +1,7 @@
-import { Schema, model, HydratedDocument, InferSchemaType } from "mongoose";
+import { Schema, model } from "mongoose";
+import type { PokemonAttributes } from "../types/pokemon.type";
 
-const pokemonSchema = new Schema(
+export const pokemonSchema = new Schema(
   {
     _id: { type: Number },
     name: { type: String, required: true, index: true },
@@ -29,8 +30,5 @@ const pokemonSchema = new Schema(
   },
   { timestamps: true, collection: "pokemonList", versionKey: false }
 );
-
-export type PokemonAttributes = InferSchemaType<typeof pokemonSchema>;
-export type PokemonDocument = HydratedDocument<PokemonAttributes>;
 
 export const Pokemon = model<PokemonAttributes>("Pokemon", pokemonSchema);

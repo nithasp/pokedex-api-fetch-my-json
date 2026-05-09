@@ -17,5 +17,3 @@ export const config = {
   // e.g. https://pub-XXXX.r2.dev  or  https://images.yourdomain.com
   r2PublicUrl: (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, ""),
 } as const;
-
-export type AppConfig = typeof config;
