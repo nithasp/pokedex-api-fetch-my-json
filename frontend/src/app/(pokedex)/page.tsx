@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchTerm } from "@/stores";
+import { useSearchTerm, useScrollTopPosition } from "@/stores";
 import { useGetPokemonInfinite } from "@/shared/hooks/queries";
-import { useScrollTopPosition } from "@/stores";
-import { PokemonList } from "./pokemon-list";
-import { SearchBar } from "./search-bar";
+import { PokemonList } from "./_components/pokemon-list";
+import { SearchBar } from "./_components/search-bar";
 
-export function HomeContent() {
+export default function HomePage() {
   const searchTerm = useSearchTerm();
   const scrollTopPosition = useScrollTopPosition();
 
