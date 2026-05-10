@@ -100,7 +100,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
               <div className="relative pt-[15%] pkm-mobile:relative! pkm-mobile:pt-[4%]!">
                 <div className="absolute left-1/2 -translate-x-1/2">
                   <div className="absolute -top-[5%] w-full text-center z-[1] max-[900px]:-top-[22%] pkm-mobile:-top-[8%]!">
-                    <h3 className="text-[#b3eafe] pkm-mobile:text-[5.5vw]">
+                    <h3 className="text-[#b3eafe] text-3xl pkm-mobile:text-[5.5vw]">
                       No. {currentPokemon.id}
                     </h3>
                     <h1 className="pokemon-info-name-shadow capitalize text-[3.5vw] tracking-[0.5px] text-white pkm-mobile:text-[6vw]!">
@@ -110,12 +110,12 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                   <div className="relative top-0 pkm-mobile:top-[6vw]! max-[450px]:top-[3vw]!">
                     <img
                       src="/images/pokemon_front_circle_bg.png"
-                      className="w-[42.5vw] h-[39.5vw] animate-rotate-image pkm-mobile:w-[65.5vw]! pkm-mobile:h-[65.5vw]!"
+                      className="!w-[42.5vw] !h-[39.5vw] animate-rotate-image pkm-mobile:w-[65.5vw]! pkm-mobile:h-[65.5vw]!"
                       alt=""
                     />
                     <img
                       src="/images/pokemon_back_circle_bg.png"
-                      className="absolute pt-[12%] top-0 left-1/2 -translate-x-1/2 h-[34vw] w-auto pkm-mobile:pt-[18%] pkm-mobile:h-[56vw]!"
+                      className="absolute pt-[12%] top-0 left-1/2 -translate-x-1/2 !h-[34vw] w-auto pkm-mobile:pt-[18%] pkm-mobile:h-[56vw]!"
                       alt=""
                     />
                     <img
@@ -124,7 +124,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                           ? "/images/loading-img/pokemon-loading6.gif"
                           : pokemonImage
                       }
-                      className="absolute pt-[18%] top-0 left-1/2 -translate-x-1/2 h-[30vw] pkm-mobile:pt-[20%]! pkm-mobile:h-[50vw]!"
+                      className="absolute pt-[18%] top-0 left-1/2 -translate-x-1/2 !h-[30vw] pkm-mobile:pt-[20%]! pkm-mobile:h-[50vw]!"
                       alt=""
                       onLoad={() => setIsImgLoading(false)}
                       onError={(event) => {
@@ -238,7 +238,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                             <img
                               src="/images/icon_male.png"
                               alt="male-gender"
-                              className="h-[2vw] w-[2vw] max-md:h-[4vw] max-md:w-[4vw] pkm-mobile:h-[4vw]! pkm-mobile:w-[4vw]!"
+                              className="!h-[2vw] !w-[2vw] max-md:h-[4vw] max-md:w-[4vw] pkm-mobile:h-[4vw]! pkm-mobile:w-[4vw]!"
                             />
                           </div>
                         </div>
@@ -256,7 +256,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                             <img
                               src="/images/icon_female.png"
                               alt="female-gender"
-                              className="h-[2vw] w-[2vw] max-md:h-[4vw] max-md:w-[4vw] pkm-mobile:h-[4vw]! pkm-mobile:w-[4vw]!"
+                              className="!h-[2vw] !w-[2vw] max-md:h-[4vw] max-md:w-[4vw] pkm-mobile:h-[4vw]! pkm-mobile:w-[4vw]!"
                             />
                           </div>
                         </div>
@@ -271,7 +271,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                           <img
                             src="/images/genderless-gray.png"
                             alt="genderless"
-                            className="h-[2vw] w-[2vw] max-md:h-[4vw] max-md:w-[4vw] pkm-mobile:h-[4vw]! pkm-mobile:w-[4vw]!"
+                            className="!h-[2vw] !w-[2vw] max-md:h-[4vw] max-md:w-[4vw] pkm-mobile:h-[4vw]! pkm-mobile:w-[4vw]!"
                           />
                         </div>
                       </div>

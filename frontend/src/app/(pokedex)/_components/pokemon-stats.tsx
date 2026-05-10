@@ -48,7 +48,7 @@ export function PokemonStatsSection({
 
   return (
     <div className="pokemon-info-section5 absolute top-[54.2vw] right-0 pkm-mobile:top-[212.8vw]! pkm-mobile:right-[6%]! pkm-mobile:w-[80vw]! pkm-tablet-tall:top-[54.8vw] max-[450px]:top-[220.8vw]!">
-      <h4 className="text-[#b3eafe] tracking-[0.5px] text-[1.9vw] absolute -top-[2.8vw] right-[45%] max-[1333px]:-top-[3vw] max-[1000px]:-top-[3.1vw] pkm-mobile:text-[3.9vw]! pkm-mobile:-top-[2.8vw]! pkm-mobile:left-0!">
+      <h4 className="text-[#b3eafe] tracking-[0.5px] text-[1.9vw] absolute -top-[3vw] right-[45%] max-[1333px]:-top-[3vw] max-[1000px]:-top-[3.1vw] pkm-mobile:text-[3.9vw]! pkm-mobile:-top-[2.8vw]! pkm-mobile:left-0!">
         Status
       </h4>
       <div

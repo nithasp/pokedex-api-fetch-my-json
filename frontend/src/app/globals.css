@@ -63,13 +63,16 @@
 
 /* ==========================================================================
  * Reset / Base
+ *
+ * NOTE: Tailwind v4's preflight already resets `margin`, `padding`, and
+ * `box-sizing` on `*, ::before, ::after` inside `@layer base`. Do NOT
+ * re-declare a global `* { margin: 0; padding: 0; }` rule outside of any
+ * `@layer` — un-layered rules always beat layered ones, regardless of
+ * specificity, so a global `padding: 0` would silently override every
+ * Tailwind `p-*` / `pt-*` / `m-*` utility (without the `!` important flag),
+ * collapsing `pokemon-container`'s height to 0 and breaking every
+ * absolutely-positioned `top: 165%` / `top: 182%` detail section.
  * ========================================================================== */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
 html,
 body {
