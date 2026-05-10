@@ -40,10 +40,6 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
   const previousId = useRef(numericId);
 
   useEffect(() => {
-    setIsImgLoading(true);
-  }, [numericId]);
-
-  useEffect(() => {
     if (previousId.current !== numericId) {
       setStatsResetKey((k) => k + 1);
       previousId.current = numericId;
@@ -65,6 +61,37 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
     : "";
 
   const errorImg = `/public_images/pokemon-notfound/poke${routeId}.png`;
+
+  // Drive the loading state from a JS preloader keyed on the resolved image
+  // URL. Relying on `<img onLoad>` is unreliable for cached images (the load
+  // event won't always fire), which is what caused the loading gif to get
+  // permanently stuck once it had been cached.
+  useEffect(() => {
+    if (!pokemonImage) return;
+
+    setIsImgLoading(true);
+
+    let cancelled = false;
+    const preloader = new window.Image();
+
+    const finish = () => {
+      if (!cancelled) setIsImgLoading(false);
+    };
+
+    preloader.onload = finish;
+    preloader.onerror = finish;
+    preloader.src = pokemonImage;
+
+    if (preloader.complete && preloader.naturalWidth > 0) {
+      finish();
+    }
+
+    return () => {
+      cancelled = true;
+      preloader.onload = null;
+      preloader.onerror = null;
+    };
+  }, [pokemonImage]);
 
   return (
     <div className="wrap-pokemon-info-section max-h-[290vw] pkm-hi-dpi:h-[300vw] pkm-mobile:max-h-[380vw]! pkm-mobile:overflow-hidden! max-[450px]:max-h-[380vw]! max-[450px]:h-auto!">
@@ -126,9 +153,10 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                       }
                       className="absolute pt-[18%] top-0 left-1/2 -translate-x-1/2 !h-[30vw] pkm-mobile:pt-[20%]! pkm-mobile:h-[50vw]!"
                       alt=""
-                      onLoad={() => setIsImgLoading(false)}
                       onError={(event) => {
-                        event.currentTarget.src = errorImg;
+                        if (event.currentTarget.src !== errorImg) {
+                          event.currentTarget.src = errorImg;
+                        }
                       }}
                     />
                   </div>
