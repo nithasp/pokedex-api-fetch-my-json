@@ -19,7 +19,7 @@ export function PokemonList() {
   );
 
   return (
-    <div className="wrap-pokemon-list">
+    <div className="wrap-pokemon-list text-center">
       <PokemonCardList
         pokemon={pokemon}
         hasMore={Boolean(hasNextPage)}

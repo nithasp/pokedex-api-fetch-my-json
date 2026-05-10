@@ -62,7 +62,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <div className="app">
+        <div className="app bg-[url('/images/pokemon_bg.jpg')] min-h-screen">
           <AppProviders>{children}</AppProviders>
         </div>
       </body>

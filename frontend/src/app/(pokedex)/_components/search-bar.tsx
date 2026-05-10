@@ -111,39 +111,50 @@ export function SearchBar() {
   }, []);
 
   return (
-    <div ref={containerRef} className="searchbar-container">
+    <div
+      ref={containerRef}
+      className="searchbar-container relative w-[90%] max-w-[500px] mx-auto"
+    >
       <input
         type="text"
         value={pokemonName}
         placeholder="Search for Pokemon"
-        className="searchbar"
+        className="w-full max-h-[40px] outline-none p-2.5 text-[21px] capitalize tracking-[0.5px] text-black bg-white max-[450px]:text-[5vw]"
         onClick={() => setShowSearchBar(pokemonName.length > 0)}
         onChange={(event) => handleInputChange(event.target.value)}
         onKeyDown={handleKeyDown}
       />
       <div
-        className="wrap-search-image"
+        className="absolute right-0 top-1/2 w-[70px] h-[97%] -translate-y-1/2 bg-[#b4ebff] cursor-pointer transition-all duration-300 hover:bg-[#b2ecff]"
         onClick={handleSubmitSearch}
         role="button"
         aria-label="Submit search"
       >
-        <img src="/images/icon_magnifying_glass.png" alt="search-icon" />
+        <img
+          src="/images/icon_magnifying_glass.png"
+          alt="search-icon"
+          className="h-[25px] w-[25px] absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
+        />
       </div>
 
       {pokemonName && showSearchBar && (
-        <div className="pokemon-search-list" onScroll={handleListScroll}>
+        <div
+          className="pokemon-search-list bg-[#0d1117] w-full absolute z-[1] max-h-[389px] overflow-y-auto"
+          onScroll={handleListScroll}
+        >
           {isSearching ? (
-            <div className="search-list-status loading center">
+            <div className="flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-[#c9d1d9] text-sm tracking-[0.5px] bg-[#0d1117] min-h-[120px]">
               <img
                 src="/images/loading-img/Spin-1s-200px.gif"
                 alt="searching"
+                className="w-[40px] h-[40px]"
               />
               <span>Searching...</span>
             </div>
           ) : showNoResults ? (
-            <div className="pokemon-item no-results">
-              <div className="pokemon-name">
-                <h3>No results</h3>
+            <div className="flex justify-between items-center px-[30px] cursor-pointer border-[1.2px] border-[#8b949e] border-t-0">
+              <div className="py-5">
+                <h3 className="m-0">No results</h3>
               </div>
             </div>
           ) : (
@@ -157,39 +168,39 @@ export function SearchBar() {
 
                 return (
                   <div
-                    className="pokemon-item"
+                    className="flex justify-between items-center px-[30px] cursor-pointer border-[1.2px] border-[#8b949e] border-t-0"
                     onClick={() => {
                       setPokemonName(value.name);
                       setShowSearchBar(false);
                     }}
                     key={value.id}
                   >
-                    <div className="pokemon-thumbnail">
+                    <div className="pokemon-thumbnail w-[100px] h-[100px]">
                       <LazyImage
                         src={thumbnail}
                         alt={displayName}
-                        className="pokemon-sprite"
                         placeholderSrc="/images/loading-img/Spin-1s-200px.gif"
                       />
                     </div>
-                    <div className="pokemon-name">
-                      <h3>{displayName}</h3>
+                    <div className="py-5">
+                      <h3 className="m-0">{displayName}</h3>
                     </div>
                   </div>
                 );
               })}
 
               {isFetchingNextPage && (
-                <div className="search-list-status loading">
+                <div className="flex items-center justify-center gap-2.5 px-4 py-3 text-[#c9d1d9] text-sm tracking-[0.5px] border-t border-[#8b949e] bg-[#0d1117]">
                   <img
                     src="/images/loading-img/Spin-1s-200px.gif"
                     alt="loading-more"
+                    className="w-[22px] h-[22px]"
                   />
                   <span>Loading more...</span>
                 </div>
               )}
               {!isFetchingNextPage && !hasNextPage && (
-                <div className="search-list-status end">
+                <div className="flex items-center justify-center gap-2.5 px-4 py-3 text-[#8b949e] italic text-sm tracking-[0.5px] border-t border-[#8b949e] bg-[#0d1117]">
                   <span>No more results</span>
                 </div>
               )}
