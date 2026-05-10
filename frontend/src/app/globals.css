@@ -37,6 +37,27 @@
   }
 }
 
+/*
+ * IMPORTANT: `pkm-mobile-sm` and `pkm-mobile-xs` MUST stay declared AFTER
+ * `pkm-mobile` above. Tailwind v4 emits custom variants in declaration order,
+ * AFTER all built-in arbitrary `max-[Npx]:` variants, so a later-declared
+ * custom variant is the only reliable way to win the cascade against
+ * `pkm-mobile:` at viewports where both queries match. Reordering these will
+ * silently re-introduce the bug where `pkm-mobile:top-[180vw]!` overrides
+ * `pkm-mobile-sm:top-[190vw]!` on `.background-bottom`.
+ */
+@custom-variant pkm-mobile-sm {
+  @media (max-width: 576px) {
+    @slot;
+  }
+}
+
+@custom-variant pkm-mobile-xs {
+  @media (max-width: 400px) {
+    @slot;
+  }
+}
+
 @custom-variant pkm-tablet-tall {
   @media (max-width: 1339px) and (min-height: 935px) {
     @slot;
@@ -280,12 +301,29 @@ a:focus {
 }
 
 @media (max-width: 1200px) and (min-height: 850px), (max-width: 768px) {
+  /*
+   * Mobile: re-enable the original `pokemon_bg_mobile.jpg` (cut-out tab +
+   * galaxy + side-border ground) but drop the `min-height: 1000vh` override —
+   * that forced ~10000px of empty pokemon-info and broke the new flow layout
+   * with a giant dead zone below the home button. With `min-height: auto`,
+   * pokemon-info sizes to the actual flowing content (~290vw), and the bg
+   * image (~297vw at this width when scaled `100% auto`) covers it.
+   * `top: -8vw` matches the JSX `!-top-[8vw]` so the cut-out tab's top half
+   * peeks above the visible page edge, leaving just a small "tab" that the
+   * title/arrows clear (positioned below it via `pokemon-container`'s
+   * `pkm-mobile:top-[20vw]!` and the navigator's `pkm-mobile:pt-[18%]!`).
+   */
   .pokemon-info {
     background: url("/images/pokemon_bg_mobile.jpg") no-repeat !important;
-    background-size: 100% auto !important;
-    background-position: top;
+    
+    /* background-size: 100% auto !important; */
+    /* background-position: top !important;
+    min-height: auto !important;
+    top: -8vw !important; */
+
+    background-size: contain !important;
+    background-position: 0px -66vw !important;
     min-height: 1000vh !important;
-    top: -80vw !important;
   }
 
   /* Override the unit prefixes on the mobile layout. */

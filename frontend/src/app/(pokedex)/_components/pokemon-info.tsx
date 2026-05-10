@@ -67,8 +67,8 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
   const errorImg = `/public_images/pokemon-notfound/poke${routeId}.png`;
 
   return (
-    <div className="wrap-pokemon-info-section max-h-[290vw] pkm-hi-dpi:h-[300vw] pkm-mobile:overflow-hidden max-[450px]:h-[290vw]!">
-      <section className="pokemon-info relative bg-[url('/images/pokemon_bg2-2.jpg')] bg-no-repeat bg-top bg-[length:100%_auto] !-top-[8vw] min-h-[70vw] max-[900px]:-top-[3vw]">
+    <div className="wrap-pokemon-info-section max-h-[290vw] pkm-hi-dpi:h-[300vw] pkm-mobile:max-h-[380vw]! pkm-mobile:overflow-hidden! max-[450px]:max-h-[380vw]! max-[450px]:h-auto!">
+      <section className="pokemon-info relative bg-[url('/images/pokemon_bg2-2.jpg')] bg-no-repeat bg-top bg-[length:100%_auto] !-top-[8vw] min-h-[70vw] max-[900px]:-top-[3vw] max-[768px]:-top-[15vw]!">
         {!errorCondition && currentPokemon && (
           <PokemonInfoNavigator
             currentId={numericId}
@@ -78,7 +78,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
           />
         )}
 
-        <div className="pokemon-container max-w-full w-[92vw] mx-auto relative pkm-mobile:top-[75vw] pkm-mobile:z-[1]">
+        <div className="pokemon-container max-w-full w-[92vw] mx-auto relative pkm-mobile:top-[20vw]! pkm-mobile:z-[1]">
           {isLoading ? (
             <div className="relative top-[24vw] max-[968px]:top-[20vw]">
               <img
@@ -97,9 +97,9 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
             </section>
           ) : (
             <>
-              <div className="relative pt-[15%] pkm-mobile:relative! pkm-mobile:pt-[4%]!">
+              <div className="relative pt-[15%] pkm-mobile:relative! pkm-mobile:pt-[4%]! pkm-mobile:h-[80vw]!">
                 <div className="absolute left-1/2 -translate-x-1/2">
-                  <div className="absolute -top-[5%] w-full text-center z-[1] max-[900px]:-top-[22%] pkm-mobile:-top-[8%]!">
+                  <div className="absolute -top-[5%] w-full text-center z-[1] pkm-mobile:-top-[8%]!">
                     <h3 className="text-[#b3eafe] text-3xl pkm-mobile:text-[5.5vw]">
                       No. {currentPokemon.id}
                     </h3>
@@ -135,7 +135,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                 </div>
               </div>
 
-              <div className="pokemon-info-section2 absolute top-[182%] -right-[18%] w-[40vw] flex flex-wrap pkm-mobile:top-[680%]! pkm-mobile:right-[6%]! pkm-mobile:w-[80vw]!">
+              <div className="pokemon-info-section2 absolute top-[182%] -right-[18%] w-[40vw] flex flex-wrap pkm-mobile:static! pkm-mobile:top-auto! pkm-mobile:right-auto! pkm-mobile:w-[80vw]! pkm-mobile:mx-auto! pkm-mobile:mt-[8vw]!">
                 <div className="info grid grid-cols-1 mb-2.5 flex-[0_0_30%] pkm-mobile:flex-[0_0_50%]! pkm-mobile:mb-[-8vw]!">
                   <span className="text-[1.5vw] text-[#b3eafe] tracking-[0.5px] pkm-mobile:text-[3.5vw]!">
                     Height
@@ -201,7 +201,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                 </div>
               </div>
 
-              <div className="pokemon-info-section3 absolute top-[165%] pkm-mobile:top-[965%]! pkm-mobile:right-[6%] pkm-mobile:w-[80vw] max-[450px]:top-[137vw]!">
+              <div className="pokemon-info-section3 absolute top-[165%] pkm-mobile:static! pkm-mobile:top-auto! pkm-mobile:right-auto! pkm-mobile:w-[80vw]! pkm-mobile:mx-auto! pkm-mobile:mt-[8vw]! max-[450px]:top-[137vw]!">
                 <div className="types">
                   <h4 className="thicker text-[#b3eafe] tracking-[0.5px] text-[1.9vw] pkm-mobile:text-[3.9vw]!">
                     Types
@@ -338,7 +338,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                 </div>
               </div>
 
-              <div className="absolute top-[380%] pkm-mobile:top-[1380%]! pkm-mobile:right-[6%] pkm-mobile:w-[80vw] max-[450px]:top-[196vw]!">
+              <div className="pokemon-info-section4 absolute top-[380%] pkm-mobile:static! pkm-mobile:top-auto! pkm-mobile:right-auto! pkm-mobile:w-[80vw]! pkm-mobile:mx-auto! pkm-mobile:mt-[8vw]! max-[450px]:top-[196vw]!">
                 <div className="info description">
                   <h4 className="thicker text-[#b3eafe] tracking-[0.5px] text-[1.9vw] pkm-mobile:text-[3.9vw]!">
                     Description
@@ -354,7 +354,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                 resetKey={statsResetKey}
               />
 
-              <div className="absolute top-[520%] w-full text-center max-[1300px]:top-[540%] max-[1300px]:pb-[50px] max-[800px]:top-[535%] pkm-mobile:top-[270vw]! max-[450px]:top-[278vw]!">
+              <div className="pokemon-info-return absolute top-[520%] w-full text-center max-[1300px]:top-[540%] max-[1300px]:pb-[50px] max-[800px]:top-[535%] pkm-mobile:static! pkm-mobile:top-auto! pkm-mobile:mt-[10vw]! pkm-mobile:mb-[10vw]! max-[450px]:top-[278vw]!">
                 <Link
                   href={ROUTES.home}
                   className="text-white bg-transparent no-underline py-2.5 px-[50px] rounded-[20px] border-2 border-[#436a96] transition-all duration-300 text-[2.2vw] tracking-[1px] hover:bg-black"
@@ -365,7 +365,10 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
             </>
           )}
         </div>
-        <div className="background-bottom hidden absolute bg-[url('/images/main_sp_bg_bottom.jpg')] bg-no-repeat h-full w-full top-[227vw] bg-[length:100%_auto] pkm-mobile:block! max-md:block! max-[450px]:top-[240vw]!"></div>
+        <div className="background-bottom hidden absolute 
+        bg-[url('/images/main_sp_bg_bottom.jpg')] 
+        bg-no-repeat h-full w-full top-[227vw] 
+        bg-[length:100%_auto] pkm-mobile:block! max-md:block! pkm-mobile:top-[180vw]! pkm-mobile:h-[242vw]! pkm-mobile-sm:top-[190vw]! pkm-mobile-xs:top-[200vw]!"></div>
       </section>
     </div>
   );
