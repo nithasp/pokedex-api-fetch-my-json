@@ -45,7 +45,18 @@ public/
    npm install
    ```
 
-2. Configure environment variables in `.env`:
+2. Configure environment variables. Next.js loads a different file depending on the command:
+
+   - `npm run dev` → loads `.env.development`
+   - `npm run build` / `npm run start` → loads `.env.production`
+   - `.env.local` always wins (use it for personal overrides; gitignored)
+
+   `.env.development` (local backend):
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:4000/api/pokemon
+   ```
+
+   `.env.production` (deployed backend):
    ```env
    NEXT_PUBLIC_API_URL=https://pokedex-api-fetch-my-json-production.up.railway.app/api/pokemon
    ```
