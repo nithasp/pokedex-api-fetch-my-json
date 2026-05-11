@@ -10,9 +10,16 @@ import {
   useState,
 } from "react";
 import { LazyImage } from "@/shared/components/lazy-image/lazy-image";
-import { useGetPokemonSearchDropdownInfinite } from "@/shared/hooks/queries";
-import { selectPokemonList } from "@/shared/selectors/pokemon.selectors";
-import { useSearchTerm, useSetSearchTerm } from "@/stores";
+import {
+  filterPokemonByName,
+  mapPokemon,
+} from "@/shared/selectors/pokemon.selectors";
+import { DEFAULT_PAGE_LIMIT } from "@/shared/utils/pagination";
+import {
+  usePokemonList,
+  useSearchTerm,
+  useSetSearchTerm,
+} from "@/stores";
 import type { Pokemon } from "@/types/pokemon.types";
 
 const SEARCH_DEBOUNCE_MS = 400;
@@ -27,34 +34,36 @@ const capitalizeWords = (value: string): string =>
 export function SearchBar() {
   const submittedSearchTerm = useSearchTerm();
   const setSubmittedSearchTerm = useSetSearchTerm();
+  const allPokemon = usePokemonList();
 
   const [pokemonName, setPokemonName] = useState(submittedSearchTerm);
   const [debouncedTerm, setDebouncedTerm] = useState("");
   const [showSearchBar, setShowSearchBar] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(DEFAULT_PAGE_LIMIT);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useGetPokemonSearchDropdownInfinite(debouncedTerm);
+  // Filter the cached `?all=true` list against the debounced term locally —
+  // no API roundtrip. The dropdown reveals `visibleCount` items at a time
+  // and grows as the user scrolls to the bottom of the panel.
+  const matchedPokemon: Pokemon[] = useMemo(() => {
+    const trimmed = debouncedTerm.trim();
+    if (!trimmed) return [];
+    return filterPokemonByName(allPokemon, trimmed)
+      .map(mapPokemon)
+      .filter((item): item is Pokemon => item !== null);
+  }, [allPokemon, debouncedTerm]);
 
-  const dropdownItems: Pokemon[] = useMemo(
-    () => (data ? data.pages.flatMap(selectPokemonList) : []),
-    [data]
+  const dropdownItems = useMemo(
+    () => matchedPokemon.slice(0, visibleCount),
+    [matchedPokemon, visibleCount]
   );
+  const hasMore = visibleCount < matchedPokemon.length;
 
-  // A search is still "in flight" when:
-  //  - the user typed something but the debounced term hasn't caught up yet
-  //    (i.e. we're still inside the debounce window), OR
-  //  - the query for the current term is actively loading.
-  // Showing the loader during BOTH phases prevents a flash of "No results"
-  // before the request even starts.
+  // Treat "user typed something but the debounce hasn't fired yet" as a still
+  // in-flight search so the "No results" copy doesn't flash before filtering.
   const trimmedName = pokemonName.trim();
   const isSearching =
-    trimmedName.length > 0 && (isLoading || trimmedName !== debouncedTerm);
+    trimmedName.length > 0 && trimmedName !== debouncedTerm;
   const showNoResults =
     !isSearching && trimmedName.length > 0 && dropdownItems.length === 0;
 
@@ -76,16 +85,16 @@ export function SearchBar() {
   };
 
   const handleListScroll = (event: UIEvent<HTMLDivElement>) => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    if (!hasMore) return;
     const el = event.currentTarget;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     if (distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD_PX) {
-      void fetchNextPage();
+      setVisibleCount((count) => count + DEFAULT_PAGE_LIMIT);
     }
   };
 
-  // Debounce the typed name so the dropdown only fetches after the user stops
-  // typing. The main grid is unaffected — it only updates on submit.
+  // Debounce the typed name so the local filter only runs after the user
+  // stops typing. The main grid is unaffected — it only updates on submit.
   useEffect(() => {
     const trimmed = pokemonName.trim();
     if (!trimmed) {
@@ -97,6 +106,12 @@ export function SearchBar() {
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(handle);
   }, [pokemonName]);
+
+  // Reset the dropdown's page size whenever the active filter changes so a
+  // new search always starts from the first batch.
+  useEffect(() => {
+    setVisibleCount(DEFAULT_PAGE_LIMIT);
+  }, [debouncedTerm]);
 
   // Close the dropdown when clicking outside the search container.
   useEffect(() => {
@@ -133,7 +148,7 @@ export function SearchBar() {
         <img
           src="/images/icon_magnifying_glass.png"
           alt="search-icon"
-          className="h-[25px] w-[25px] absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
+          className="h-[25px]! w-[25px]! absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
         />
       </div>
 
@@ -147,7 +162,7 @@ export function SearchBar() {
               <img
                 src="/images/loading-img/Spin-1s-200px.gif"
                 alt="searching"
-                className="w-[40px] h-[40px]"
+                className="w-[40px]! h-[40px]!"
               />
               <span>Searching...</span>
             </div>
@@ -179,7 +194,6 @@ export function SearchBar() {
                       <LazyImage
                         src={thumbnail}
                         alt={displayName}
-                        placeholderSrc="/images/loading-img/Spin-1s-200px.gif"
                       />
                     </div>
                     <div className="py-5">
@@ -189,17 +203,7 @@ export function SearchBar() {
                 );
               })}
 
-              {isFetchingNextPage && (
-                <div className="flex items-center justify-center gap-2.5 px-4 py-3 text-[#c9d1d9] text-sm tracking-[0.5px] border-t border-[#8b949e] bg-[#0d1117]">
-                  <img
-                    src="/images/loading-img/Spin-1s-200px.gif"
-                    alt="loading-more"
-                    className="w-[22px] h-[22px]"
-                  />
-                  <span>Loading more...</span>
-                </div>
-              )}
-              {!isFetchingNextPage && !hasNextPage && (
+              {!hasMore && dropdownItems.length > 0 && (
                 <div className="flex items-center justify-center gap-2.5 px-4 py-3 text-[#8b949e] italic text-sm tracking-[0.5px] border-t border-[#8b949e] bg-[#0d1117]">
                   <span>No more results</span>
                 </div>

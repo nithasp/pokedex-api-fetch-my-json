@@ -1,24 +1,40 @@
 import { create } from "zustand";
+import { DEFAULT_PAGE_LIMIT } from "@/shared/utils/pagination";
 import type {
   PokedexUIActions,
   PokedexUIState,
 } from "@/types/pokedex.store.types";
-import type { DisplayedPokemon } from "@/types/pokemon.types";
+import type { RawPokemon } from "@/types/pokemon.types";
 
 const INITIAL_STATE: PokedexUIState = {
   searchTerm: "",
   scrollTopPosition: 0,
-  displayedPokemon: null,
+  pokemonList: [],
+  isPokemonListLoaded: false,
+  homeVisibleCount: DEFAULT_PAGE_LIMIT,
 };
 
 export const usePokedexStore = create<PokedexUIState & PokedexUIActions>(
   (set) => ({
     ...INITIAL_STATE,
 
-    setSearchTerm: (term: string) => set({ searchTerm: term }),
+    setSearchTerm: (term: string) =>
+      set((state) =>
+        state.searchTerm === term
+          ? state
+          : {
+              searchTerm: term,
+              homeVisibleCount: DEFAULT_PAGE_LIMIT,
+              scrollTopPosition: 0,
+            }
+      ),
     setScrollTopPosition: (y: number) => set({ scrollTopPosition: y }),
-    setDisplayedPokemon: (snapshot: DisplayedPokemon | null) =>
-      set({ displayedPokemon: snapshot }),
+    setPokemonList: (list: RawPokemon[]) =>
+      set({ pokemonList: list, isPokemonListLoaded: true }),
+    incrementHomeVisibleCount: () =>
+      set((state) => ({
+        homeVisibleCount: state.homeVisibleCount + DEFAULT_PAGE_LIMIT,
+      })),
     reset: () => set({ ...INITIAL_STATE }),
   })
 );
@@ -35,8 +51,17 @@ export const useScrollTopPosition = () =>
 export const useSetScrollTopPosition = () =>
   usePokedexStore((state) => state.setScrollTopPosition);
 
-export const useDisplayedPokemon = () =>
-  usePokedexStore((state) => state.displayedPokemon);
+export const usePokemonList = () =>
+  usePokedexStore((state) => state.pokemonList);
 
-export const useSetDisplayedPokemon = () =>
-  usePokedexStore((state) => state.setDisplayedPokemon);
+export const useSetPokemonList = () =>
+  usePokedexStore((state) => state.setPokemonList);
+
+export const useIsPokemonListLoaded = () =>
+  usePokedexStore((state) => state.isPokemonListLoaded);
+
+export const useHomeVisibleCount = () =>
+  usePokedexStore((state) => state.homeVisibleCount);
+
+export const useIncrementHomeVisibleCount = () =>
+  usePokedexStore((state) => state.incrementHomeVisibleCount);

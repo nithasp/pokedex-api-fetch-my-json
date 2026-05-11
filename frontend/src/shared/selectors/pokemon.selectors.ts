@@ -1,9 +1,4 @@
-import { DEFAULT_PAGINATION } from "@/shared/utils/pagination";
-import type {
-  ApiResponse,
-  ApiSuccess,
-  PaginationMeta,
-} from "@/types/api.types";
+import type { ApiResponse, ApiSuccess } from "@/types/api.types";
 import type {
   Pokemon,
   PokemonSummary,
@@ -80,37 +75,26 @@ export const selectRawPokemonList = (
 ): RawPokemon[] =>
   isApiSuccess(response) && Array.isArray(response.data) ? response.data : [];
 
-export const selectPokemonList = (
-  response: ApiResponse<RawPokemon[]> | undefined
-): Pokemon[] =>
-  selectRawPokemonList(response)
-    .map(mapPokemon)
-    .filter((item): item is Pokemon => item !== null);
+/**
+ * Locate a pokemon by its national dex number inside the cached `?all=true`
+ * list. Used by the detail page (and its prev/next neighbors) so navigation
+ * never re-hits the API.
+ */
+export const findRawPokemonById = (
+  list: RawPokemon[],
+  id: number
+): RawPokemon | undefined => list.find((item) => item._id === id);
 
-export const selectPokemonPagination = (
-  response: ApiResponse<RawPokemon[]> | undefined
-): PaginationMeta =>
-  isApiSuccess(response) && response.pagination
-    ? response.pagination
-    : DEFAULT_PAGINATION;
-
-export const selectRawPokemon = (
-  response: ApiResponse<RawPokemon> | undefined
-): RawPokemon | null => (isApiSuccess(response) ? response.data : null);
-
-export const selectPokemon = (
-  response: ApiResponse<RawPokemon> | undefined
-): Pokemon | null => mapPokemon(selectRawPokemon(response));
-
-export const selectPokemonSummary = (
-  response: ApiResponse<RawPokemon> | undefined
-): PokemonSummary | null => mapPokemonSummary(selectRawPokemon(response));
-
-export const getNextPageNumber = (
-  response: ApiResponse<RawPokemon[]>
-): number | undefined => {
-  const pagination = selectPokemonPagination(response);
-  const { page, totalPages } = pagination;
-  if (totalPages > 0 && page < totalPages) return page + 1;
-  return undefined;
+/**
+ * Case-insensitive name filter used by both the home grid (submitted search
+ * term) and the search dropdown (debounced as-you-type term). Returns the
+ * full list when the term is empty.
+ */
+export const filterPokemonByName = (
+  list: RawPokemon[],
+  term: string
+): RawPokemon[] => {
+  const normalized = term.trim().toLowerCase();
+  if (!normalized) return list;
+  return list.filter((item) => item.name.toLowerCase().includes(normalized));
 };

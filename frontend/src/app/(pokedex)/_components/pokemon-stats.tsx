@@ -16,26 +16,26 @@ const STATUS_FIELDS: Array<{
   { key: "specialDefense", label: "Special Defense", marker: "special-defense" },
 ];
 
-export function PokemonStatsSection({
-  stats,
-  resetKey,
-}: PokemonStatsSectionProps) {
+export function PokemonStatsSection({ stats }: PokemonStatsSectionProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Use IntersectionObserver to add `active` once the bars enter the viewport,
-  // mirroring the original scroll-listener behavior. Re-run when `resetKey`
-  // changes so navigating between pokemon replays the bar animation.
+  // Add the `active` class once the bars first scroll into view and leave it
+  // on for the lifetime of the component. The CSS `increaseBar` keyframe
+  // animation is meant as a one-shot intro — re-triggering it on every
+  // pokemon navigation visibly snaps every bar back to 0 before refilling,
+  // which is the flicker the user saw. Keeping `active` persistent lets the
+  // inline `width: ${value}%` style (with `transition-all duration-1000`)
+  // smoothly interpolate from the previous pokemon's value to the new one.
   useEffect(() => {
     const node = wrapRef.current;
-    if (!node) return;
-
-    node.classList.remove("active");
+    if (!node || node.classList.contains("active")) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             node.classList.add("active");
+            observer.disconnect();
           }
         });
       },
@@ -44,7 +44,7 @@ export function PokemonStatsSection({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [resetKey]);
+  }, []);
 
   return (
     <div className="pokemon-info-section5 absolute top-[54.2vw] right-0 pkm-mobile:static! pkm-mobile:top-auto! pkm-mobile:right-auto! pkm-mobile:w-[80vw]! pkm-mobile:mx-auto! pkm-mobile:mt-[8vw]! pkm-tablet-tall:top-[54.8vw] max-[450px]:top-[220.8vw]!">

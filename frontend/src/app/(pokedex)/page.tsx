@@ -1,33 +1,45 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchTerm, useScrollTopPosition } from "@/stores";
-import { useGetPokemonList } from "@/shared/hooks/queries";
+import { useGetAllPokemon } from "@/shared/hooks/queries";
+import {
+  useIsPokemonListLoaded,
+  useScrollTopPosition,
+} from "@/stores";
 import { PokemonList } from "./_components/pokemon-list";
 import { SearchBar } from "./_components/search-bar";
 
 export default function HomePage() {
-  const searchTerm = useSearchTerm();
+  const isLoaded = useIsPokemonListLoaded();
   const scrollTopPosition = useScrollTopPosition();
 
-  // Drive the global loader from the main grid query — typing in the search
-  // bar updates the dropdown via a separate query, so this loader only flips
-  // on the initial fetch and on submitted searches.
-  const { isLoading } = useGetPokemonList({ search: searchTerm });
+  // Kick off (or reuse) the single bulk `?all=true` request. Once it resolves
+  // the hook hydrates the global pokedex store; the rest of the app reads
+  // from that store and never re-hits the API.
+  const { error } = useGetAllPokemon();
+
+  // Surface fetch failures to the route-level error boundary so users see
+  // the existing "Something went wrong / Try again" UI.
+  if (error && !isLoaded) {
+    throw error;
+  }
 
   // Restore the saved scroll position when returning from the detail page.
+  // The home grid's `homeVisibleCount` is also persisted in the store, so by
+  // the time this runs the previously-revealed cards are already mounted and
+  // there is real DOM to scroll to.
   useEffect(() => {
-    if (!isLoading) {
+    if (isLoaded) {
       window.scrollTo(0, scrollTopPosition);
     }
-  }, [isLoading, scrollTopPosition]);
+  }, [isLoaded, scrollTopPosition]);
 
   return (
     <section className="home-section">
       <h1 className="pokemon-header-title block py-2.5 text-center font-pocket-monk text-[wheat] text-[60px]">
         Pokedex
       </h1>
-      {isLoading ? (
+      {!isLoaded ? (
         <div className="home-loading relative top-[5vw]">
           <img
             src="/images/loading-img/loading250x250-2.gif"

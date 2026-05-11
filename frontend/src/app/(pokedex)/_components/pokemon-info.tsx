@@ -1,165 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { getTypeColor } from "@/config/pokemon-types";
 import { POKEMON_ID_RANGE, ROUTES } from "@/config/routes";
-import { useGetPokemonById } from "@/shared/hooks/queries";
+import { useGetAllPokemon } from "@/shared/hooks/queries";
 import {
-  selectPokemon,
-  selectPokemonSummary,
+  findRawPokemonById,
+  mapPokemon,
+  mapPokemonSummary,
 } from "@/shared/selectors/pokemon.selectors";
-import {
-  useDisplayedPokemon,
-  useSetDisplayedPokemon,
-} from "@/stores";
-import type { PokemonInfoProps } from "@/types/pokemon.types";
+import { useIsPokemonListLoaded, usePokemonList } from "@/stores";
+import type { PokemonImage, PokemonInfoProps } from "@/types/pokemon.types";
 import { PokemonInfoNavigator } from "./pokemon-info-navigator";
 import { PokemonStatsSection } from "./pokemon-stats";
 
+const resolveImageUrl = (image: PokemonImage | undefined): string =>
+  image?.full || image?.detail || "";
+
 export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
-  const prevId = numericId > POKEMON_ID_RANGE.min ? numericId - 1 : null;
-  const nextId = numericId < POKEMON_ID_RANGE.max ? numericId + 1 : null;
+  // Trigger the bulk `?all=true` fetch on first entry; subsequent navigations
+  // are no-ops because the query has `staleTime: Infinity` and the hook
+  // hydrates the Zustand store.
+  const { error } = useGetAllPokemon();
+  const isLoaded = useIsPokemonListLoaded();
+  const allPokemon = usePokemonList();
 
-  const currentQuery = useGetPokemonById(numericId);
-  const prevQuery = useGetPokemonById(prevId);
-  const nextQuery = useGetPokemonById(nextId);
+  if (error && !isLoaded) {
+    throw error;
+  }
 
-  const targetCurrent = useMemo(
-    () => selectPokemon(currentQuery.data),
-    [currentQuery.data]
+  // Look up current / prev / next directly from the cached list. Prev/next
+  // are simply `_id ± 1`, matching how the navigator's `Link`s already wire
+  // their `href` — no extra requests, no React Query roundtrips.
+  const currentPokemon = useMemo(
+    () => mapPokemon(findRawPokemonById(allPokemon, numericId)),
+    [allPokemon, numericId]
   );
-  const targetPrev = useMemo(
-    () => selectPokemonSummary(prevQuery.data),
-    [prevQuery.data]
-  );
-  const targetNext = useMemo(
-    () => selectPokemonSummary(nextQuery.data),
-    [nextQuery.data]
-  );
 
-  // A query is "settled" when it has data, has errored, or is disabled
-  // because we're at a pokemon-id boundary (id is null). Only after ALL
-  // three queries are settled do we swap the displayed snapshot, which
-  // gives the same atomic-update guarantee as `Promise.all`.
-  const currentSettled = !!currentQuery.data || !!currentQuery.error;
-  const prevSettled = prevId === null || !!prevQuery.data || !!prevQuery.error;
-  const nextSettled = nextId === null || !!nextQuery.data || !!nextQuery.error;
-  const allSettled = currentSettled && prevSettled && nextSettled;
+  const prevPokemon = useMemo(() => {
+    if (numericId <= POKEMON_ID_RANGE.min) return null;
+    return mapPokemonSummary(findRawPokemonById(allPokemon, numericId - 1));
+  }, [allPokemon, numericId]);
 
-  // The committed snapshot is held in Zustand (not local React state) so
-  // that an unmount/remount of `<PokemonInfo>` during a route transition
-  // doesn't lose it — that was the source of the global loader briefly
-  // flashing on every prev/next click.
-  const storeDisplayed = useDisplayedPokemon();
-  const setStoreDisplayed = useSetDisplayedPokemon();
+  const nextPokemon = useMemo(() => {
+    if (numericId >= POKEMON_ID_RANGE.max) return null;
+    return mapPokemonSummary(findRawPokemonById(allPokemon, numericId + 1));
+  }, [allPokemon, numericId]);
 
-  // Only "trust" the persisted snapshot when it matches the current target
-  // or one of its direct neighbors (i.e. prev/next navigation). For any
-  // other entry — direct URL, refresh, list-card click, search jump — the
-  // stale snapshot is filtered out so the full-page first-entry loader
-  // fires as the user expects.
-  const displayed = useMemo(() => {
-    if (!storeDisplayed) return null;
-    const isSameOrAdjacent =
-      Math.abs(storeDisplayed.currentId - numericId) <= 1;
-    return isSameOrAdjacent ? storeDisplayed : null;
-  }, [storeDisplayed, numericId]);
-
-  const [isImgLoading, setIsImgLoading] = useState(true);
-  const [statsResetKey, setStatsResetKey] = useState(0);
-
-  useEffect(() => {
-    if (!allSettled) return;
-
-    const alreadyDisplayingTarget = storeDisplayed?.currentId === numericId;
-
-    if (!targetCurrent) {
-      // Target failed to load (request error / not found). Drop back to
-      // the error UI rather than holding the previous pokemon on screen.
-      if (!alreadyDisplayingTarget) setStoreDisplayed(null);
-      return;
-    }
-
-    if (!alreadyDisplayingTarget) {
-      setStatsResetKey((k) => k + 1);
-    }
-
-    setStoreDisplayed({
-      currentId: numericId,
-      current: targetCurrent,
-      prev: targetPrev,
-      next: targetNext,
-    });
-  }, [
-    allSettled,
-    numericId,
-    targetCurrent,
-    targetPrev,
-    targetNext,
-    storeDisplayed?.currentId,
-    setStoreDisplayed,
-  ]);
-
+  // Snap the viewport back to the top on every navigation so each pokemon's
+  // detail page reads fresh. We deliberately do NOT bump a "reset key" for
+  // the stat bars or remount the image element here — both elements stay
+  // mounted and let their built-in CSS transitions interpolate between the
+  // previous and current pokemon's values, which is what makes prev/next
+  // feel smooth instead of flickering.
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [numericId]);
 
-  const handleNavigatorClick = () => {
-    setIsImgLoading(true);
-  };
-
-  const isNavigating = !!displayed && displayed.currentId !== numericId;
-
-  // Render the rest of the page from the committed snapshot — this is the
-  // single source of truth that swaps atomically once everything is ready.
-  const currentPokemon = displayed?.current ?? null;
-  const prevPokemon = displayed?.prev ?? null;
-  const nextPokemon = displayed?.next ?? null;
-
-  const pokemonImage = currentPokemon
-    ? currentPokemon.image.full || currentPokemon.image.detail || ""
-    : "";
-
+  const pokemonImage = resolveImageUrl(currentPokemon?.image);
   const errorImg = `/public_images/pokemon-notfound/poke${routeId}.png`;
 
-  // Drive the loading state from a JS preloader keyed on the resolved image
-  // URL. Relying on `<img onLoad>` is unreliable for cached images (the load
-  // event won't always fire), which is what caused the loading gif to get
-  // permanently stuck once it had been cached.
+  // Warm the browser's image cache for the neighbors so clicking prev/next
+  // shows the next sprite without any visible network wait. This is purely
+  // an asset hint — there is still no extra API call.
   useEffect(() => {
-    if (!pokemonImage) return;
-
-    setIsImgLoading(true);
-
-    let cancelled = false;
-    const preloader = new window.Image();
-
-    const finish = () => {
-      if (!cancelled) setIsImgLoading(false);
+    const preload = (url: string) => {
+      if (!url) return;
+      const img = new window.Image();
+      img.src = url;
     };
+    preload(resolveImageUrl(prevPokemon?.image));
+    preload(resolveImageUrl(nextPokemon?.image));
+  }, [prevPokemon, nextPokemon]);
 
-    preloader.onload = finish;
-    preloader.onerror = finish;
-    preloader.src = pokemonImage;
-
-    if (preloader.complete && preloader.naturalWidth > 0) {
-      finish();
-    }
-
-    return () => {
-      cancelled = true;
-      preloader.onload = null;
-      preloader.onerror = null;
-    };
-  }, [pokemonImage]);
-
-  // First-time entry (no snapshot has ever been committed and the queries
-  // haven't all resolved): render a full-page loader that hides the rest of
-  // the detail UI. Subsequent prev/next navigations don't take this branch
-  // — they keep the previous snapshot on screen and only show the small
-  // `pokemon-loading6.gif` overlay (driven by `isImgLoading`).
-  if (displayed === null && !allSettled) {
+  // First-time entry while the bulk list is still being fetched (or hasn't
+  // started yet on a direct URL hit): show the full-page loader. Once the
+  // store is hydrated, the rest of the page renders from it synchronously.
+  if (!isLoaded) {
     return (
       <section className="home-section">
         <h1 className="pokemon-header-title block py-2.5 text-center font-pocket-monk text-[wheat] text-[60px]">
@@ -184,8 +102,6 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
             currentId={currentPokemon.id}
             prevPokemon={prevPokemon}
             nextPokemon={nextPokemon}
-            onNavigate={handleNavigatorClick}
-            disabled={isNavigating}
           />
         )}
 
@@ -222,11 +138,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                       alt=""
                     />
                     <img
-                      src={
-                        isImgLoading
-                          ? "/images/loading-img/pokemon-loading6.gif"
-                          : pokemonImage
-                      }
+                      src={pokemonImage}
                       className="absolute pt-[18%] top-0 left-1/2 -translate-x-1/2 !h-[30vw] pkm-mobile:pt-[20%]! pkm-mobile:h-[50vw]!"
                       alt=""
                       onError={(event) => {
@@ -453,10 +365,7 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                 </div>
               </div>
 
-              <PokemonStatsSection
-                stats={currentPokemon.stats}
-                resetKey={statsResetKey}
-              />
+              <PokemonStatsSection stats={currentPokemon.stats} />
 
               <div className="pokemon-info-return absolute top-[520%] w-full text-center max-[1300px]:top-[540%] max-[1300px]:pb-[50px] max-[800px]:top-[535%] pkm-mobile:static! pkm-mobile:top-auto! pkm-mobile:mt-[10vw]! pkm-mobile:mb-[10vw]! max-[450px]:top-[278vw]!">
                 <Link

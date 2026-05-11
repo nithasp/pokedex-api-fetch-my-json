@@ -24,7 +24,6 @@ const capitalize = (value: string): string =>
 export function PokemonCardList({
   pokemon,
   hasMore,
-  isFetchingMore,
   onLoadMore,
 }: PokemonCardListProps) {
   const setScrollTopPosition = useSetScrollTopPosition();
@@ -151,9 +150,8 @@ export function PokemonCardList({
               className="loading-more text-white text-[22px] tracking-[1px] bg-transparent py-2.5 px-5 border-2 border-[#436a96] rounded-[50px] outline-none cursor-pointer transition-all duration-300 hover:bg-black"
               type="button"
               onClick={handleLoadingMore}
-              disabled={isFetchingMore}
             >
-              {isFetchingMore ? "Loading..." : "Loading More..."}
+              Loading More...
             </button>
           )}
         </div>

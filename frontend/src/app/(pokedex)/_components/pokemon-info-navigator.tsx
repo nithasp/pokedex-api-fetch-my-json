@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import type { MouseEvent } from "react";
 import { POKEMON_ID_RANGE, ROUTES } from "@/config/routes";
 import type { PokemonInfoNavigatorProps } from "@/types/pokemon.types";
 
@@ -9,27 +8,14 @@ export function PokemonInfoNavigator({
   currentId,
   prevPokemon,
   nextPokemon,
-  onNavigate,
-  disabled = false,
 }: PokemonInfoNavigatorProps) {
   // Button visibility is purely structural (driven by the id range), not by
-  // whether the neighbor's summary data has loaded yet. Otherwise the next
-  // button flickers off whenever we navigate to a cached pokemon while its
-  // own *next* neighbor's request is still in flight.
+  // whether the neighbor's summary data has loaded yet. With the entire list
+  // cached up front, the neighbor lookup is synchronous anyway, but keeping
+  // visibility id-driven means the arrows stay anchored even for the very
+  // first paint after a direct URL entry.
   const showPrev = currentId > POKEMON_ID_RANGE.min;
   const showNext = currentId < POKEMON_ID_RANGE.max;
-
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (disabled) {
-      event.preventDefault();
-      return;
-    }
-    onNavigate();
-  };
-
-  const linkDisabledClasses = disabled
-    ? "pointer-events-none opacity-50"
-    : "";
 
   return (
     <div className="pokemon-info-navigator absolute !pt-[14%] w-full pkm-mobile:pt-[18%]!">
@@ -52,10 +38,7 @@ export function PokemonInfoNavigator({
           )}
           <Link
             href={ROUTES.pokemonDetail(currentId - 1)}
-            className={`wrap-arrow-left ${linkDisabledClasses}`.trim()}
-            onClick={handleClick}
-            aria-disabled={disabled}
-            tabIndex={disabled ? -1 : undefined}
+            className="wrap-arrow-left"
           >
             <img
               src="/images/arrow_left_btn.png"
@@ -90,10 +73,7 @@ export function PokemonInfoNavigator({
           )}
           <Link
             href={ROUTES.pokemonDetail(currentId + 1)}
-            className={`wrap-arrow-right ${linkDisabledClasses}`.trim()}
-            onClick={handleClick}
-            aria-disabled={disabled}
-            tabIndex={disabled ? -1 : undefined}
+            className="wrap-arrow-right"
           >
             <img
               src="/images/arrow_right_btn.png"
