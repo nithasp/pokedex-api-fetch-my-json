@@ -91,6 +91,20 @@ export interface PokemonSummary {
   image: PokemonImage;
 }
 
+/**
+ * Atomic snapshot of the detail page that's currently rendered to the
+ * screen. Held in the Zustand store so it survives any unmount/remount of
+ * the detail-page subtree triggered by Next.js's route transitions, which
+ * is what allows prev/next navigation to keep the previous pokemon visible
+ * (instead of flashing the full-page loader) while the new data loads.
+ */
+export interface DisplayedPokemon {
+  currentId: number;
+  current: Pokemon;
+  prev: PokemonSummary | null;
+  next: PokemonSummary | null;
+}
+
 export interface GetPokemonListParams {
   page?: number;
   limit?: number;
@@ -133,6 +147,12 @@ export interface PokemonInfoNavigatorProps {
   prevPokemon: PokemonSummary | null;
   nextPokemon: PokemonSummary | null;
   onNavigate: () => void;
+  /**
+   * When true, the prev/next buttons remain visible but are non-interactive
+   * and visually muted. Used while the current pokemon detail is still loading
+   * so the navigator doesn't visually flicker in/out on each navigation.
+   */
+  disabled?: boolean;
 }
 
 export interface PokemonStatsSectionProps {

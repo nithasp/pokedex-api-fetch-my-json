@@ -3,10 +3,12 @@ import type {
   PokedexUIActions,
   PokedexUIState,
 } from "@/types/pokedex.store.types";
+import type { DisplayedPokemon } from "@/types/pokemon.types";
 
 const INITIAL_STATE: PokedexUIState = {
   searchTerm: "",
   scrollTopPosition: 0,
+  displayedPokemon: null,
 };
 
 export const usePokedexStore = create<PokedexUIState & PokedexUIActions>(
@@ -15,6 +17,8 @@ export const usePokedexStore = create<PokedexUIState & PokedexUIActions>(
 
     setSearchTerm: (term: string) => set({ searchTerm: term }),
     setScrollTopPosition: (y: number) => set({ scrollTopPosition: y }),
+    setDisplayedPokemon: (snapshot: DisplayedPokemon | null) =>
+      set({ displayedPokemon: snapshot }),
     reset: () => set({ ...INITIAL_STATE }),
   })
 );
@@ -30,3 +34,9 @@ export const useScrollTopPosition = () =>
 
 export const useSetScrollTopPosition = () =>
   usePokedexStore((state) => state.setScrollTopPosition);
+
+export const useDisplayedPokemon = () =>
+  usePokedexStore((state) => state.displayedPokemon);
+
+export const useSetDisplayedPokemon = () =>
+  usePokedexStore((state) => state.setDisplayedPokemon);
