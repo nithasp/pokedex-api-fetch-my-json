@@ -32,24 +32,24 @@ function withImageUrls<T extends { image?: { full?: string | null; detail?: stri
   };
 }
 
-// GET /api/pokemon — paginated list, filter by type and/or name search
+// GET /api/pokemon — paginated list, filter by type and/or name search.
+// Pass `?all=true` to bypass pagination and return every matching pokemon.
 export const getPokemons = async (req: Request, res: Response) => {
-  const { page, limit, type, search } = req.valid.query as ListPokemonQuery;
+  const { page, limit, type, search, all } = req.valid.query as ListPokemonQuery;
 
   const filter: Record<string, unknown> = {};
   if (type) filter.types = type;
   if (search) filter.name = { $regex: search, $options: "i" };
 
-  const [items, total] = await Promise.all([
-    Pokemon.find(filter)
-      .sort({ _id: 1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean(),
-    Pokemon.countDocuments(filter),
-  ]);
+  const query = Pokemon.find(filter).sort({ _id: 1 });
+  if (!all) {
+    query.skip((page - 1) * limit).limit(limit);
+  }
 
-  return ok(res, items.map(withImageUrls), buildPagination(page, limit, total));
+  const [items, total] = await Promise.all([query.lean(), Pokemon.countDocuments(filter)]);
+
+  const effectiveLimit = all ? total : limit;
+  return ok(res, items.map(withImageUrls), buildPagination(page, effectiveLimit, total));
 };
 
 // GET /api/pokemon/:id — single pokemon by national dex number

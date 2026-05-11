@@ -8,7 +8,7 @@ export const buildPagination = (page: number, limit: number, total: number): Pag
   page,
   limit,
   total,
-  totalPages: Math.max(1, Math.ceil(total / limit)),
+  totalPages: limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1,
 });
 
 export const fail = (

@@ -105,8 +105,38 @@ describe("GET /api/pokemon", () => {
     expect(res.body.error.code).toBe("VALIDATION_ERROR");
   });
 
-  it("caps limit at 200", async () => {
+  it("allows large limit values", async () => {
     const res = await request(app).get("/api/pokemon?limit=999");
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.pagination.limit).toBe(999);
+  });
+
+  it("returns every matching pokemon when all=true", async () => {
+    const res = await request(app).get("/api/pokemon?all=true&limit=2");
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toHaveLength(4);
+    expect(res.body.pagination).toEqual({
+      page: 1,
+      limit: 4,
+      total: 4,
+      totalPages: 1,
+    });
+  });
+
+  it("respects pagination when all=false", async () => {
+    const res = await request(app).get("/api/pokemon?all=false&limit=2");
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(2);
+    expect(res.body.pagination.limit).toBe(2);
+  });
+
+  it("rejects invalid all values", async () => {
+    const res = await request(app).get("/api/pokemon?all=yes");
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe("VALIDATION_ERROR");

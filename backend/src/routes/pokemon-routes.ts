@@ -6,9 +6,10 @@ import { asyncHandler } from "../utils/async-handler";
 
 export const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(200).default(25),
+  limit: z.coerce.number().int().min(1).default(25),
   type: z.string().trim().min(1).optional(),
   search: z.string().trim().min(1).optional(),
+  all: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
 });
 
 export const idParamSchema = z.object({
