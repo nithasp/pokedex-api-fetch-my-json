@@ -2,6 +2,7 @@ import cors from "cors";
 import express, { Express } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+import { buildCorsOriginHandler } from "./config/env";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { pokemonRouter } from "./routes/pokemon-routes";
 import type { BuildAppOptions } from "./types/build-app-options.type";
@@ -10,7 +11,7 @@ export function buildApp({ corsOrigin = "*", enableLogging = false }: BuildAppOp
   const app = express();
 
   app.use(helmet());
-  app.use(cors({ origin: corsOrigin }));
+  app.use(cors({ origin: buildCorsOriginHandler(corsOrigin) }));
   app.use(express.json({ limit: "1mb" }));
   if (enableLogging) app.use(morgan("dev"));
 

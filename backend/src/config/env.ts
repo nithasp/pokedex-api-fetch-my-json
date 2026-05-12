@@ -1,3 +1,4 @@
+import type { CorsOptions } from "cors";
 import "dotenv/config";
 
 function required(key: string): string {
@@ -8,14 +9,41 @@ function required(key: string): string {
   return value;
 }
 
+// Returns "*" for full wildcard, otherwise a normalized list of allowed origins.
+// Strips trailing slashes so "https://foo.com/" and "https://foo.com" both work.
+function parseCorsOrigin(raw: string | undefined): "*" | string[] {
+  const value = (raw ?? "*").trim();
+  if (value === "" || value === "*") return "*";
+  return value
+    .split(",")
+    .map((o) => o.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+}
+
+export function buildCorsOriginHandler(
+  corsOrigin: "*" | string | string[]
+): CorsOptions["origin"] {
+  if (corsOrigin === "*") return "*";
+
+  const allowList = (Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin]).map((o) =>
+    o.replace(/\/$/, "")
+  );
+
+  return (origin, callback) => {
+    // Allow non-browser clients (curl, server-to-server, same-origin) that send no Origin header.
+    if (!origin) return callback(null, true);
+    const normalized = origin.replace(/\/$/, "");
+    if (allowList.includes(normalized)) return callback(null, true);
+    console.warn(`[cors] Blocked origin: ${origin}. Allowed: ${allowList.join(", ")}`);
+    callback(new Error(`Not allowed by CORS: ${origin}`));
+  };
+}
+
 export const config = {
   port: Number(process.env.PORT ?? 4000),
   nodeEnv: process.env.NODE_ENV ?? "development",
   mongoUri: required("MONGO_URI"),
-  corsOrigin: (process.env.CORS_ORIGIN ?? "*")
-    .split(",")
-    .map((o) => o.trim())
-    .filter(Boolean),
+  corsOrigin: parseCorsOrigin(process.env.CORS_ORIGIN),
   // Public base URL for Cloudflare R2 bucket (no trailing slash)
   // e.g. https://pub-XXXX.r2.dev  or  https://images.yourdomain.com
   r2PublicUrl: (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, ""),
