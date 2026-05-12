@@ -51,4 +51,5 @@ export const config = {
 
 // One-time startup log so Railway logs show exactly what CORS allowlist was parsed
 // from the env var. Helps catch invisible whitespace / quoting issues quickly.
-console.log("[cors] Allowed origins:", config.corsOrigin);
+// JSON.stringify keeps it on one line even when the array has many entries.
+console.log(`[cors] Allowed origins: ${JSON.stringify(config.corsOrigin)}`);
