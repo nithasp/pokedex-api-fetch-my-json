@@ -48,3 +48,7 @@ export const config = {
   // e.g. https://pub-XXXX.r2.dev  or  https://images.yourdomain.com
   r2PublicUrl: (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, ""),
 } as const;
+
+// One-time startup log so Railway logs show exactly what CORS allowlist was parsed
+// from the env var. Helps catch invisible whitespace / quoting issues quickly.
+console.log("[cors] Allowed origins:", config.corsOrigin);
