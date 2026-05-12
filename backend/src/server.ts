@@ -3,6 +3,8 @@ import { connectDB, disconnectDB } from "./config/db";
 import { config } from "./config/env";
 
 async function start(): Promise<void> {
+  console.log(`[cors] Allowed origins: ${JSON.stringify(config.corsOrigin)}`);
+
   await connectDB();
 
   const app = buildApp({ corsOrigin: config.corsOrigin, enableLogging: true });

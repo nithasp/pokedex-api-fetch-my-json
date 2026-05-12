@@ -2,7 +2,7 @@ import cors from "cors";
 import express, { Express } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import { buildCorsOriginHandler } from "./config/env";
+import { buildCorsOriginHandler } from "./config/cors";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { pokemonRouter } from "./routes/pokemon-routes";
 import type { BuildAppOptions } from "./types/build-app-options.type";
