@@ -12,7 +12,10 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   nodeEnv: process.env.NODE_ENV ?? "development",
   mongoUri: required("MONGO_URI"),
-  corsOrigin: process.env.CORS_ORIGIN ?? "*",
+  corsOrigin: (process.env.CORS_ORIGIN ?? "*")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean),
   // Public base URL for Cloudflare R2 bucket (no trailing slash)
   // e.g. https://pub-XXXX.r2.dev  or  https://images.yourdomain.com
   r2PublicUrl: (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, ""),

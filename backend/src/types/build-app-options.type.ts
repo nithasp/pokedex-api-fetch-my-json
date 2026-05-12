@@ -1,4 +1,4 @@
 export interface BuildAppOptions {
-  corsOrigin?: string;
+  corsOrigin?: string | string[];
   enableLogging?: boolean;
 }
