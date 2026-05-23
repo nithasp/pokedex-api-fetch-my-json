@@ -85,11 +85,7 @@ export function PokemonCardList({
       >
         {pokemon.map((value) => {
           const { id, name, types, image } = value;
-          const paddedId = padId(id);
-          const pokemonImage =
-            image.detail ||
-            image.full ||
-            `https://assets.pokemon.com/assets/cms2/img/pokedex/detail/${paddedId}.png`;
+          const pokemonImage = image.detail || image.full || "";
           const displayName = capitalize(name);
 
           return (

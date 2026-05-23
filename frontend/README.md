@@ -58,7 +58,7 @@ public/
 
    `.env.production` (deployed backend):
    ```env
-   NEXT_PUBLIC_API_URL=https://pokedex-api-fetch-my-json-production.up.railway.app/api/pokemon
+   NEXT_PUBLIC_API_URL=https://pokedex-api.proxystack.dev/api/pokemon
    ```
 
 3. Start the dev server:
