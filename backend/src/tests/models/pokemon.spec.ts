@@ -22,10 +22,6 @@ const bulbasaur = {
   hatchCounter: 20,
   genderRate: 1,
   eVs: ["1 Special-attack"],
-  image: {
-    full: "https://example.com/full/001.png",
-    detail: "https://example.com/detail/001.png",
-  },
 };
 
 describe("Pokemon model", () => {

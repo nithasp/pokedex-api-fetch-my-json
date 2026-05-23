@@ -23,10 +23,10 @@ export const pokemonSchema = new Schema(
     hatchCounter: { type: Number },
     genderRate: { type: Number },
     eVs: { type: [String], default: [] },
-    image: {
-      full: String,
-      detail: String,
-    },
+    // NOTE: image paths are intentionally NOT stored.
+    // The path is fully derivable from `_id` and a few env vars
+    // (R2_PUBLIC_URL, IMAGE_EXTENSION) and assembled in the controller.
+    // See `buildImageUrls` in `controllers/pokemon-controller.ts`.
   },
   { timestamps: true, collection: "pokemonList", versionKey: false }
 );

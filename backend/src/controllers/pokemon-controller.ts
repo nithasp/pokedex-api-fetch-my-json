@@ -4,31 +4,46 @@ import { Pokemon } from "../models/pokemon";
 import type { ListPokemonQuery, PokemonIdParams } from "../types/pokemon-routes.type";
 import { HttpError, buildPagination, ok } from "../utils/response";
 
+/** Zero-pad the dex id to 3 digits: 4 → "004", 10 → "010", 100 → "100". */
+const padDexId = (id: number): string => String(id).padStart(3, "0");
+
 /**
- * Attach the full CDN URL to a pokemon's image paths.
+ * Build the public image URLs for a pokemon entirely from its dex id.
  *
- * MongoDB stores only the relative path:
- *   "images/pokemon/full/004.png"
+ * The DB no longer stores image paths — they're 100% derivable from:
+ *   _id              → 1..898 → zero-padded ("004")
+ *   R2_PUBLIC_URL    → CDN base, e.g. https://pub-XXXX.r2.dev
+ *   IMAGE_EXTENSION  → file format, e.g. "webp" / "png"
  *
- * R2_PUBLIC_URL env var holds the CDN base (never changes regardless of backend host):
- *   "https://pub-XXXX.r2.dev"
+ * Bucket path convention:
+ *   images/pokemon/full/004.webp
+ *   images/pokemon/detail/004.webp
  *
- * Result in API response:
- *   "https://pub-XXXX.r2.dev/images/pokemon/full/004.png"
- *
- * To switch CDN providers: change R2_PUBLIC_URL in .env — DB stays untouched.
+ * To switch CDN, file format, or folder structure: change env/code only —
+ * the database stays untouched, no migrations required.
  */
-function withImageUrls<T extends { image?: { full?: string | null; detail?: string | null } | null }>(
-  pokemon: T
-): T {
+function buildImageUrls(id: number): { full: string; detail: string } | null {
   const base = config.r2PublicUrl;
-  if (!base || !pokemon.image) return pokemon;
+  if (!base) return null;
+  const ext = config.imageExtension;
+  const name = padDexId(id);
+  return {
+    full: `${base}/images/pokemon/full/${name}.${ext}`,
+    detail: `${base}/images/pokemon/detail/${name}.${ext}`,
+  };
+}
+
+/**
+ * Attach a derived `image` object to a lean pokemon document.
+ *
+ * `_id` is typed as nullable by Mongoose's `InferSchemaType`, but in practice
+ * every persisted document has one — we just narrow the type defensively.
+ */
+function attachImage<T extends { _id?: number | null }>(pokemon: T) {
+  const id = pokemon._id;
   return {
     ...pokemon,
-    image: {
-      full: pokemon.image.full ? `${base}/${pokemon.image.full}` : null,
-      detail: pokemon.image.detail ? `${base}/${pokemon.image.detail}` : null,
-    },
+    image: typeof id === "number" ? buildImageUrls(id) : null,
   };
 }
 
@@ -49,7 +64,7 @@ export const getPokemons = async (req: Request, res: Response) => {
   const [items, total] = await Promise.all([query.lean(), Pokemon.countDocuments(filter)]);
 
   const effectiveLimit = all ? total : limit;
-  return ok(res, items.map(withImageUrls), buildPagination(page, effectiveLimit, total));
+  return ok(res, items.map(attachImage), buildPagination(page, effectiveLimit, total));
 };
 
 // GET /api/pokemon/:id — single pokemon by national dex number
@@ -61,5 +76,5 @@ export const getPokemon = async (req: Request, res: Response) => {
     throw new HttpError(404, `Pokemon #${id} not found`, "POKEMON_NOT_FOUND");
   }
 
-  return ok(res, withImageUrls(pokemon));
+  return ok(res, attachImage(pokemon));
 };
