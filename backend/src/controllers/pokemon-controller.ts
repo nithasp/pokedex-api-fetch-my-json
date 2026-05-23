@@ -47,6 +47,23 @@ function attachImage<T extends { _id?: number | null }>(pokemon: T) {
   };
 }
 
+// Pokemon data is effectively immutable (refreshed only by manual scripts).
+// `stale-while-revalidate` gives us instant repeat loads from the browser
+// cache while still picking up any backend changes on the *next* visit:
+//   - max-age=60               → served straight from cache for 60s
+//   - stale-while-revalidate   → served stale immediately for up to a day,
+//                                with a fresh fetch kicked off in background
+// On an update, the worst-case UX is one stale visit before the user sees
+// the new data — no manual cache busting required.
+const POKEMON_CACHE_CONTROL =
+  "public, max-age=60, stale-while-revalidate=86400";
+
+// Server-side projection: these timestamps are stored by Mongoose's
+// `timestamps: true` but are never read by the frontend (see RawPokemon
+// in frontend/src/types/pokemon.types.ts). Dropping them shrinks every
+// list item by ~70 bytes before compression.
+const LIST_PROJECTION = { createdAt: 0, updatedAt: 0 } as const;
+
 // GET /api/pokemon — paginated list, filter by type and/or name search.
 // Pass `?all=true` to bypass pagination and return every matching pokemon.
 export const getPokemons = async (req: Request, res: Response) => {
@@ -56,14 +73,18 @@ export const getPokemons = async (req: Request, res: Response) => {
   if (type) filter.types = type;
   if (search) filter.name = { $regex: search, $options: "i" };
 
-  const query = Pokemon.find(filter).sort({ _id: 1 });
+  const query = Pokemon.find(filter, LIST_PROJECTION).sort({ _id: 1 });
   if (!all) {
     query.skip((page - 1) * limit).limit(limit);
   }
 
-  const [items, total] = await Promise.all([query.lean(), Pokemon.countDocuments(filter)]);
+  // When `all=true` the total is just `items.length`, so we skip the extra
+  // `countDocuments` round trip to Mongo entirely.
+  const items = await query.lean();
+  const total = all ? items.length : await Pokemon.countDocuments(filter);
 
   const effectiveLimit = all ? total : limit;
+  res.set("Cache-Control", POKEMON_CACHE_CONTROL);
   return ok(res, items.map(attachImage), buildPagination(page, effectiveLimit, total));
 };
 
@@ -71,10 +92,11 @@ export const getPokemons = async (req: Request, res: Response) => {
 export const getPokemon = async (req: Request, res: Response) => {
   const { id } = req.valid.params as PokemonIdParams;
 
-  const pokemon = await Pokemon.findById(id).lean();
+  const pokemon = await Pokemon.findById(id, LIST_PROJECTION).lean();
   if (!pokemon) {
     throw new HttpError(404, `Pokemon #${id} not found`, "POKEMON_NOT_FOUND");
   }
 
+  res.set("Cache-Control", POKEMON_CACHE_CONTROL);
   return ok(res, attachImage(pokemon));
 };
