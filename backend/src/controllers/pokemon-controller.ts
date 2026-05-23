@@ -47,16 +47,20 @@ function attachImage<T extends { _id?: number | null }>(pokemon: T) {
   };
 }
 
-// Pokemon data is effectively immutable (refreshed only by manual scripts).
-// `stale-while-revalidate` gives us instant repeat loads from the browser
-// cache while still picking up any backend changes on the *next* visit:
-//   - max-age=60               → served straight from cache for 60s
-//   - stale-while-revalidate   → served stale immediately for up to a day,
-//                                with a fresh fetch kicked off in background
-// On an update, the worst-case UX is one stale visit before the user sees
-// the new data — no manual cache busting required.
+// Pokemon data is effectively immutable (refreshed only by manual scripts),
+// so we cache aggressively at every layer (Cloudflare edge + browser):
+//   - max-age=86400            → 1-day fresh window. Each Cloudflare POP keeps
+//                                the response that long, so MISS rate is tiny
+//                                even in low-traffic regions (~1 MISS per POP
+//                                per day instead of per minute).
+//   - stale-while-revalidate=604800
+//                              → 7-day grace period: even after the fresh
+//                                window expires, caches serve stale instantly
+//                                and refresh in the background.
+// On a data update, run the Cloudflare "Purge Everything" button to flush
+// all POPs worldwide in ~5 seconds — no waiting for TTLs to expire.
 const POKEMON_CACHE_CONTROL =
-  "public, max-age=60, stale-while-revalidate=86400";
+  "public, max-age=86400, stale-while-revalidate=604800";
 
 // Server-side projection: these timestamps are stored by Mongoose's
 // `timestamps: true` but are never read by the frontend (see RawPokemon
