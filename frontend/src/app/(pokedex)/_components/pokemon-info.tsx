@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getTypeColor } from "@/config/pokemon-types";
 import { POKEMON_ID_RANGE, ROUTES } from "@/config/routes";
 import { useGetAllPokemon } from "@/shared/hooks/queries";
@@ -60,6 +60,25 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
 
   const pokemonImage = resolveImageUrl(currentPokemon?.image);
   const errorImg = `/public_images/pokemon-notfound/poke${routeId}.png`;
+
+  // Drive the loading-spinner overlay on the main sprite. We reset the
+  // flag every time the URL changes so the placeholder re-appears while
+  // the next sprite is fetched, and we also sync it from the element's
+  // `complete` flag — when the preload effect below has already warmed
+  // the browser cache, the native `onLoad` event may not fire again.
+  const [pokemonImageLoaded, setPokemonImageLoaded] = useState(false);
+  const pokemonImageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    setPokemonImageLoaded(false);
+  }, [pokemonImage]);
+
+  useEffect(() => {
+    const node = pokemonImageRef.current;
+    if (node && node.complete && node.naturalWidth > 0) {
+      setPokemonImageLoaded(true);
+    }
+  }, [pokemonImage]);
 
   // Warm the browser's image cache for the neighbors so clicking prev/next
   // shows the next sprite without any visible network wait. This is purely
@@ -138,15 +157,35 @@ export function PokemonInfo({ numericId, routeId }: PokemonInfoProps) {
                       alt=""
                     />
                     <img
+                      ref={pokemonImageRef}
                       src={pokemonImage}
                       className="absolute pt-[18%] top-0 left-1/2 -translate-x-1/2 !h-[30vw] pkm-mobile:pt-[20%]! pkm-mobile:h-[50vw]!"
                       alt=""
+                      onLoad={() => setPokemonImageLoaded(true)}
                       onError={(event) => {
-                        if (event.currentTarget.src !== errorImg) {
-                          event.currentTarget.src = errorImg;
+                        const target = event.currentTarget;
+                        // Use endsWith because the browser resolves `src`
+                        // to an absolute URL after assignment, so a
+                        // strict equality check against the relative
+                        // `errorImg` path would never be true.
+                        if (!target.src.endsWith(errorImg)) {
+                          target.src = errorImg;
+                        } else {
+                          // Fallback sprite also failed — drop the
+                          // placeholder so the user doesn't sit on a
+                          // spinning Pokeball forever.
+                          setPokemonImageLoaded(true);
                         }
                       }}
                     />
+                    {!pokemonImageLoaded && (
+                      <img
+                        src="/images/loading-img/pokemon-loading6.gif"
+                        aria-hidden
+                        alt=""
+                        className="absolute pt-[18%] top-0 left-1/2 -translate-x-1/2 !h-[30vw] pkm-mobile:pt-[20%]! pkm-mobile:h-[50vw]!"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
